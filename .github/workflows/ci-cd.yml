@@ -3,10 +3,10 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - dhanoop-reactjs  # Replace with your actual branch name
+      - dhanoop-reactjs
   pull_request:
     branches:
-      - dhanoop-reactjs  # Replace with your actual branch name
+      - dhanoop-reactjs
 
 jobs:
   build:
@@ -14,12 +14,12 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3  # Update to the latest version
 
     - name: Set up Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3  # Update to the latest version
       with:
-        node-version: '18'  # Updated to match your project's Node.js version
+        node-version: '18'  # Your project's Node.js version
 
     - name: Install dependencies
       run: npm install
@@ -31,5 +31,5 @@ jobs:
       run: npm run build
 
     - name: Deploy
-      run: npm run deploy  # Modify this if you have a specific deployment command
- 
+      run: npm run deploy  # Add your deployment command if needed
+
