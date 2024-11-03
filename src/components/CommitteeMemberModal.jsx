@@ -1,153 +1,144 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
-const employeesData = [
-  { id: 1, name: "John Doe", department: "Finance", designation: "Manager" },
-  { id: 2, name: "Jane Smith", department: "HR", designation: "Executive" },
-  { id: 3, name: "Alice Johnson", department: "IT", designation: "Developer" },
-  { id: 4, name: "Bob Brown", department: "Finance", designation: "Analyst" },
-  // Add more employee objects as needed
-];
+const CommitteeMemberModal = ({ showModal, closeModal, committeeId }) => {
+  const [employees, setEmployees] = useState([]);
+  const [selectedMembers, setSelectedMembers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [department, setDepartment] = useState('');
+  const [departments, setDepartments] = useState([]);
+  const [role, setRole] = useState('');
+  const [score, setScore] = useState('');
+  const [subcommittees, setSubcommittees] = useState([]);
+  const [selectedSubcommittee, setSelectedSubcommittee] = useState('');
 
-const CommitteeMemberModal = ({ showModal, closeModal }) => {
-  const [memberDetails, setMemberDetails] = useState({
-    employee_id: '',
-    role: '',
-    score: 0,
-  });
-  
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [selectedDepartment, setSelectedDepartment] = useState('');
-  const [selectedDesignation, setSelectedDesignation] = useState('');
+  useEffect(() => {
+    if (showModal) {
+      fetchEmployees();
+      fetchDepartments();
+      fetchSubcommittees();
+    }
+  }, [showModal]);
 
-  const handleSave = () => {
-    // Logic to save member details goes here
-    console.log('Member Details:', memberDetails);
-    closeModal();
+  const fetchEmployees = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/employee/filter-employee/', {
+        params: { department },
+      });
+      setEmployees(response.data);
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    }
   };
 
-  const filteredEmployees = employeesData.filter(employee => {
-    const matchesSearch = employee.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesDepartment = selectedDepartment ? employee.department === selectedDepartment : true;
-    const matchesDesignation = selectedDesignation ? employee.designation === selectedDesignation : true;
-    return matchesSearch && matchesDepartment && matchesDesignation;
-  });
+  const fetchDepartments = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/employee/departments/');
+      setDepartments(response.data);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    }
+  };
 
-  const departments = [...new Set(employeesData.map(emp => emp.department))];
-  const designations = [...new Set(employeesData.map(emp => emp.designation))];
+  const fetchSubcommittees = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/employee/subcommittees/');
+      setSubcommittees(response.data);
+    } catch (error) {
+      console.error('Error fetching subcommittees:', error);
+    }
+  };
+
+  const handleMemberSelection = (member) => {
+    setSelectedMembers((prev) => [...prev, member]);
+  };
+
+  const handleSubmitMembers = async () => {
+    const payload = {
+      committee_id: committeeId,
+      members: selectedMembers.map(member => ({
+        id: member.id,
+        role,
+        score
+      })),
+    };
+
+    try {
+      await axios.post('http://127.0.0.1:8000/employee/add-members/', payload);
+      alert('Members added successfully!');
+      closeModal();
+    } catch (error) {
+      console.error('Error adding members:', error);
+    }
+  };
+
+  if (!showModal) return null;
 
   return (
-    showModal && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity">
-        <div className="bg-gray-800 rounded-lg shadow-lg w-full max-w-lg p-6 animate-fade-in">
-          <h2 className="text-3xl font-bold text-center text-white mb-6">Add Committee Member</h2>
-          <form className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1 text-white">Search Employee</label>
-                <input
-                  type="text"
-                  className="w-full p-3 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-blue-500 transition"
-                  placeholder="Search by name"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && filteredEmployees.length > 0 && (
-                  <ul className="absolute bg-gray-800 border-black rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto z-10 ">
-                    {filteredEmployees.map(employee => (
-                      <li
-                        key={employee.id}
-                        className="p-2 hover:bg-blue-600 cursor-pointer"
-                        onClick={() => {
-                          setSelectedEmployee(employee);
-                          setMemberDetails({ ...memberDetails, employee_id: employee.id });
-                          setSearchQuery('');
-                        }}
-                      >
-                        {employee.name} - {employee.department} ({employee.designation})
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1 text-white">Department</label>
-                <select
-                  className="w-full p-3 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-blue-500 transition"
-                  value={selectedDepartment}
-                  onChange={(e) => setSelectedDepartment(e.target.value)}
-                >
-                  <option value="">All Departments</option>
-                  {departments.map((dept, index) => (
-                    <option key={index} value={dept}>{dept}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1 text-white">Designation</label>
-                <select
-                  className="w-full p-3 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-blue-500 transition"
-                  value={selectedDesignation}
-                  onChange={(e) => setSelectedDesignation(e.target.value)}
-                >
-                  <option value="">All Designations</option>
-                  {designations.map((designation, index) => (
-                    <option key={index} value={designation}>{designation}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1 text-white">Selected Employee</label>
-                <input
-                  type="text"
-                  className="w-full p-3 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-blue-500 transition"
-                  value={selectedEmployee ? `${selectedEmployee.name} - ${selectedEmployee.department} (${selectedEmployee.designation})` : ''}
-                  readOnly
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1 text-white">Role</label>
-                <input
-                  type="text"
-                  className="w-full p-3 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-blue-500 transition"
-                  value={memberDetails.role}
-                  onChange={(e) => setMemberDetails({ ...memberDetails, role: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1 text-white">Score</label>
-                <input
-                  type="number"
-                  className="w-full p-3 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-blue-500 transition"
-                  value={memberDetails.score}
-                  onChange={(e) => setMemberDetails({ ...memberDetails, score: parseInt(e.target.value) })}
-                />
-              </div>
-            </div>
-            <div className="flex justify-end mt-6 space-x-3">
-              <button
-                type="button"
-                className="py-2 px-4 bg-red-600 rounded-md hover:bg-red-500 transition"
-                onClick={closeModal}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="py-2 px-4 bg-blue-600 rounded-md hover:bg-blue-500 transition"
-                onClick={handleSave}
-              >
-                Save Member
-              </button>
-            </div>
-          </form>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+      <div className="bg-white text-black rounded-lg p-8">
+        <h2 className="text-xl mb-4">Add Members to Committee</h2>
+        <label className="block mb-2">Search Employees:</label>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border rounded p-2 mb-4 w-full"
+        />
+        <div className="mb-4">
+          <label className="block mb-2">Department:</label>
+          <select
+            value={department}
+            onChange={(e) => {
+              setDepartment(e.target.value);
+              fetchEmployees();
+            }}
+            className="border rounded p-2 mb-4 w-full"
+          >
+            <option value="">Select Department</option>
+            {departments.map(dept => (
+              <option key={dept.id} value={dept.name}>{dept.name}</option>
+            ))}
+          </select>
         </div>
+        <div>
+          <h3 className="text-lg mb-2">Employees:</h3>
+          <ul>
+            {employees.filter(emp => emp.name.toLowerCase().includes(searchTerm.toLowerCase())).map(emp => (
+              <li key={emp.id} className="flex justify-between items-center border-b py-2">
+                <span>{emp.name}</span>
+                <button onClick={() => handleMemberSelection(emp)} className="bg-blue-500 text-white rounded px-2">Add</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <h3 className="text-lg mt-4 mb-2">Selected Members:</h3>
+        <ul>
+          {selectedMembers.map(member => (
+            <li key={member.id} className="flex justify-between items-center border-b py-2">
+              <span>{member.name}</span>
+              <button onClick={() => setSelectedMembers(selectedMembers.filter(m => m.id !== member.id))} className="bg-red-500 text-white rounded px-2">Remove</button>
+            </li>
+          ))}
+        </ul>
+        <label className="block mt-4 mb-2">Role:</label>
+        <input
+          type="text"
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className="border rounded p-2 mb-4 w-full"
+        />
+        <label className="block mb-2">Score:</label>
+        <input
+          type="number"
+          value={score}
+          onChange={(e) => setScore(e.target.value)}
+          className="border rounded p-2 mb-4 w-full"
+        />
+        <button onClick={handleSubmitMembers} className="bg-green-500 text-white rounded px-4 py-2">Submit</button>
+        <button onClick={closeModal} className="bg-gray-500 text-white rounded px-4 py-2 ml-2">Close</button>
       </div>
-    )
+    </div>
   );
 };
 
