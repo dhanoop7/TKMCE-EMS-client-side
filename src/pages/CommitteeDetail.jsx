@@ -19,24 +19,23 @@ const CommitteeDetail = () => {
       });
   }, [id]);
 
-  const generatePDF = () => {
-    axios({
-      url: `http://127.0.0.1:8000/committee/report/${id}/`,
-      method: 'GET',
-      responseType: 'blob', // Important
-    })
+  const handleGeneratePDF = () => {
+    axios
+      .get(`http://127.0.0.1:8000/committee/report/${id}/`, { responseType: "text" })
       .then((response) => {
-        // Create a URL for the PDF blob
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `committee_report_${id}.pdf`);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
+        const reportHtml = response.data;
+
+        const printWindow = window.open("", "_blank");
+        printWindow.document.open();
+        printWindow.document.write(reportHtml);
+        printWindow.document.close();
+
+        printWindow.onload = () => {
+          printWindow.print();
+        };
       })
       .catch((error) => {
-        console.error("Error generating PDF:", error);
+        console.error("Error generating HTML report:", error);
       });
   };
 
@@ -45,72 +44,71 @@ const CommitteeDetail = () => {
   }
 
   return (
-    <div className="pt-24 flex min-h-screen overflow-hidden bg-gray-900">
+    <div className="pt-24 flex min-h-screen overflow-hidden bg-gray-900 text-gray-100">
       <div className="md:min-w-[18rem]">
         <Sidebar />
       </div>
 
-      <div className="flex-grow pt-20 p-4 sm:p-6 lg:p-10 text-gray-100">
-        <h2 className="text-4xl font-semibold text-center text-gray-100 mb-8">
-          Committee Details: {committeeDetails.committe_Name}
-        </h2>
-        
-        <div className="bg-gray-800 shadow-lg rounded-lg p-6 mb-6">
-          <h3 className="text-2xl font-bold text-gray-200 mb-3">
-            Order Number: {committeeDetails.order_number}
+      <div className="flex-grow pt-10 pb-8 px-6 lg:px-10">
+        <div className="flex flex-col items-center">
+          <h2 className="text-5xl font-semibold text-center text-blue-300 mb-8">
+            Committee Details
+          </h2>
+          <h3 className="text-2xl font-bold text-gray-200 text-center bg-gray-800 px-6 py-2 rounded-lg shadow-lg mb-10">
+            {committeeDetails.committe_Name}
           </h3>
-          <p className="text-gray-400 mb-4">
-            <span className="font-medium">Order Text:</span> {committeeDetails.order_Text}
-          </p>
-          <p className="text-gray-400 mb-4">
-            <span className="font-medium">Description:</span> {committeeDetails.order_Description}
-          </p>
-          
-          <div className="mt-6">
-            <h4 className="text-xl font-semibold text-gray-200 mb-3">Main Committee Members:</h4>
-            <ul className="list-disc pl-5 text-gray-400">
-              {(committeeDetails.main_committee_members || []).map((member, index) => (
-                <li key={index}>
-                  {member.employee?.name} - {member.role} (Department: {member.employee?.department_name || 'N/A'})
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {committeeDetails.sub_committees?.length > 0 && (
-            <div className="mt-8">
-              <h4 className="text-xl font-semibold text-gray-200 mb-3">Subcommittees:</h4>
-              {committeeDetails.sub_committees.map((subCommittee, index) => (
-                <div key={index} className="mt-4 p-4 bg-gray-700 rounded-lg">
-                  <h5 className="text-lg font-semibold text-gray-300 mb-2">
-                    {subCommittee.sub_committee_name}
-                  </h5>
-                  <p className="text-gray-400 mb-3">{subCommittee.sub_committee_Text}</p>
-                  
-                  <ul className="list-disc pl-5 text-gray-400">
-                    {(subCommittee.members || []).map((member, idx) => (
-                      <li key={idx}>
-                        {member.employee?.name} - {member.role} (Department: {member.employee?.department_name || 'N/A'})
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
-        <button
-          onClick={generatePDF}
-          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Generate PDF
-        </button>
+        <div className="bg-blue-700 shadow-lg rounded-lg p-8 space-y-8 mb-8 border-2 border-blue-500">
+          <h3 className="text-2xl font-bold text-white">Main Committee Members</h3>
+          <ul className="list-disc pl-5 text-gray-200 space-y-2">
+            {(committeeDetails.main_committee_members || []).map((member, index) => (
+              <li key={index} className="leading-relaxed">
+                <span className="text-white">{member.employee?.name}</span> - {member.role}{" "}
+                <span className="italic text-sm text-gray-300">
+                  (Department: {member.employee?.department_name || "N/A"})
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {committeeDetails.sub_committees?.length > 0 && (
+          <div className="bg-gray-800 shadow-lg rounded-lg p-6 mt-6 space-y-6">
+            <h4 className="text-xl font-semibold text-blue-300">Subcommittees</h4>
+            {committeeDetails.sub_committees.map((subCommittee, index) => (
+              <div key={index} className="p-4 bg-gray-700 rounded-lg space-y-2">
+                <h5 className="text-lg font-semibold text-gray-300">
+                  {subCommittee.sub_committee_name}
+                </h5>
+                <p className="text-gray-400">{subCommittee.sub_committee_Text}</p>
+
+                <ul className="list-disc pl-5 text-gray-400 space-y-1">
+                  {(subCommittee.members || []).map((member, idx) => (
+                    <li key={idx} className="leading-relaxed">
+                      <span className="text-gray-200">{member.employee?.name}</span> - {member.role}{" "}
+                      <span className="italic text-sm text-gray-400">
+                        (Department: {member.employee?.department_name || "N/A"})
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex justify-center mt-10">
+          <button
+            onClick={handleGeneratePDF}
+            className="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform transition-transform duration-150 hover:scale-105"
+          >
+            Download Committee Report as PDF
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
 export default CommitteeDetail;
-
-

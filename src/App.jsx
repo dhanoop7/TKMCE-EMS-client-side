@@ -1,4 +1,4 @@
-import './App.css'
+import './App.css';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AdminLogin from './pages/adminlogin';
 import Navbar from './components/Navbar';
@@ -8,25 +8,27 @@ import EmployeeManagement from './pages/EmployeeManagement';
 import CommitteeMain from './pages/CommitteeMain';
 import GenerateCommitteeReport from './pages/GenerateCommitteeReport';
 import CommitteeDetail from './pages/CommitteeDetail';
+import ProtectedRoute from './components/ProtectedRoute';
 
+ // Import ProtectedRoute
 
 function App() {
-
-
   return (
     <Router>
       <Navbar />
       <Routes>
-        <Route path='/' element={<AdminLogin/>} />
-        <Route path='/dashboard' element={<AdminDashboard/>} />
-        <Route path='/committee-dashboard' element={<CommitteeMain />} />
-        <Route path='/committee' element={<Committee />} />
-        <Route path='/generate-report' element={<GenerateCommitteeReport />} />
-        <Route path="/committee-detail/:id" element={<CommitteeDetail />} />
-        <Route path='/employee' element={<EmployeeManagement />} />
+        <Route path="/" element={<AdminLogin />} />
+        
+        {/* Protected Routes */}
+        <Route path="/admin-dashboard" element={<ProtectedRoute element={AdminDashboard} />} />
+        <Route path="/committee-dashboard" element={<ProtectedRoute element={CommitteeMain} />} />
+        <Route path="/committee" element={<ProtectedRoute element={Committee} />} />
+        <Route path="/generate-report" element={<ProtectedRoute element={GenerateCommitteeReport} />} />
+        <Route path="/committee-detail/:id" element={<ProtectedRoute element={CommitteeDetail} />} />
+        <Route path="/employee" element={<ProtectedRoute element={EmployeeManagement} />} />
       </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

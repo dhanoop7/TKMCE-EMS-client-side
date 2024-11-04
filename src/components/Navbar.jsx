@@ -1,6 +1,16 @@
 import React from "react";
+import Cookies from 'js-cookie'; // Import js-cookie to handle cookies
 
 const Navbar = () => {
+  const accessToken = Cookies.get('accessToken'); // Check for the access token
+
+  const handleLogout = () => {
+    // Logic for handling logout
+    // For example, remove the access token and redirect to login
+    Cookies.remove('accessToken'); // Remove the token
+    window.location.href = '/'; // Redirect to the login page
+  };
+
   return (
     <nav className="bg-slate-950 p-5 fixed top-0 w-full z-10">
       <div className="container mx-auto flex items-center justify-between">
@@ -9,11 +19,14 @@ const Navbar = () => {
           <span className="text-cyan-500 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold mx-1">EMS</span>
         </div>
         <div className="flex items-center space-x-4">
-          <button
-            className="text-white bg-slate-700 hover:bg-gray-800 focus:bg-gray-800 focus:ring-4 focus:outline-none font-medium rounded-lg text-xs sm:text-sm md:text-md lg:text-lg xl:text-xl px-3 py-2 text-center mb-2"
-          >
-            Logout
-          </button>
+          {accessToken ? ( // Conditional rendering based on access token
+            <button
+              onClick={handleLogout} // Attach the logout handler
+              className="text-white bg-slate-700 hover:bg-gray-800 focus:bg-gray-800 focus:ring-4 focus:outline-none font-medium rounded-lg text-xs sm:text-sm md:text-md lg:text-lg xl:text-xl px-3 py-2 text-center mb-2"
+            >
+              Logout
+            </button>
+          ) : null} {/* Render nothing if the user is not logged in */}
         </div>
       </div>
     </nav>
@@ -21,3 +34,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

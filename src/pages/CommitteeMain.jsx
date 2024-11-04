@@ -1,8 +1,17 @@
 import React from 'react'
 import Sidebar from '../components/SideBar';
-import { FaUserPlus, FaSearch } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { MdGroups } from "react-icons/md";
+import { FaFileInvoice } from "react-icons/fa";
 
 const CommitteeMain = () => {
+  const navigate = useNavigate()
+  const handleNavigateGenerateReport = () =>{
+    navigate("/generate-report")
+  }
+  const handleNavigateAddCommittee = () =>{
+    navigate("/committee")
+  }
   return (
     <div className="pt-24 flex min-h-screen overflow-hidden bg-gray-800">
       {/* Sidebar */}
@@ -19,18 +28,21 @@ const CommitteeMain = () => {
           <div
             className="bg-green-500 hover:bg-green-400 p-6 rounded-md shadow-md flex flex-col justify-between items-center text-center cursor-pointer"
              // Open modal on click
+             onClick={handleNavigateAddCommittee}
           >
             <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2">Add Committee</h3>
-            <FaUserPlus className="text-white" size={40} />
+            <MdGroups className="text-white" size={40} />
           </div>
 
           {/* Search Employee Section */}
           <div
             className="bg-blue-500 hover:bg-blue-400 p-6 rounded-md shadow-md flex flex-col justify-between items-center text-center cursor-pointer"
             // Open modal on click
+            onClick={handleNavigateGenerateReport}
           >
             <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2">Generate Report</h3>
-            <FaSearch className="text-white" size={40} />
+            {/* <FaSearch className="text-white" size={40} /> */}
+            <FaFileInvoice className='text-white' size={40} />
           </div>
         </div>
         

@@ -1,28 +1,33 @@
 import React, { useState } from "react";
 import { HiMenuAlt3 } from "react-icons/hi"; 
-
 import { PiVideoConferenceFill } from "react-icons/pi";
 import { GrLogout } from "react-icons/gr"; 
-
 import { FaUsers, FaUserTie, FaCalendarCheck, FaChalkboardTeacher } from "react-icons/fa";
+import { MdDashboard } from "react-icons/md";
+
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const Sidebar = () => {
   const [open, setOpen] = useState(true);
+  const navigate = useNavigate(); // Get the navigate function
 
   const menus = [
-    { name: "Add Committee", path: '/add_committee', icon: FaUsers },
-    { name: "Show Committee", path: '/show_committee', icon: PiVideoConferenceFill },
-    { name: "Employee Management", path: '/add_employee', icon: FaUserTie }, 
-    { name: "Leave Management", path: '/leave_management', icon: FaCalendarCheck }, 
-    { name: "Conference", path: '/conference_management', icon: FaChalkboardTeacher },
+    {name: "Dash board", path: '/admin-dashboard', icon: MdDashboard},
+    { name: "Add Committee", path: '/committee', icon: FaUsers },
+    { name: "Existing Committee", path: '/generate-report', icon: PiVideoConferenceFill },
+    { name: "Employee Management", path: '/employee', icon: FaUserTie }, 
+    // { name: "Leave Management", path: '/leave_management', icon: FaCalendarCheck }, 
+    // { name: "Conference", path: '/conference_management', icon: FaChalkboardTeacher },
     { name: "Logout", path: '/', icon: GrLogout },
   ];
 
+  const handleNavigation = (path) => {
+    navigate(path); // Navigate to the specified path
+  };
+
   return (
-    <div className=" h-full fixed">
-      <div
-        className={`bg-slate-950 text-white h-full ${open ? "w-72" : "w-16"} duration-500 px-4`}
-      >
+    <div className="h-full fixed">
+      <div className={`bg-slate-950 text-white h-full ${open ? "w-72" : "w-16"} duration-500 px-4`}>
         <div className="py-3 flex justify-end">
           <HiMenuAlt3
             size={26}
@@ -35,7 +40,7 @@ const Sidebar = () => {
             <div
               key={i}
               className="flex items-center text-xl gap-3.5 font-medium p-2 cursor-pointer hover:bg-gray-800 rounded-md"
-              onClick={() => console.log(`Navigating to ${menu.path}`)} // Placeholder for navigation
+              onClick={() => handleNavigation(menu.path)} // Call handleNavigation on click
             >
               <div>{React.createElement(menu.icon, { size: "20" })}</div>
               <h2
@@ -53,5 +58,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-
-

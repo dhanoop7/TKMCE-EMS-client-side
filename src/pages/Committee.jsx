@@ -200,17 +200,6 @@ const Committee = () => {
     id: emp.id,
   }));
 
-  const handleRemoveMember = (index) => {
-    const updatedMembers = mainCommitteeMembers.filter((_, i) => i !== index);
-    setMainCommitteeMembers(updatedMembers); // Update the state with the new members array
-  };
-
-  const removeMemberFromSubcommittee = (subcommitteeIndex, memberIndex) => {
-    const updatedSubcommittees = [...subcommittees];
-    updatedSubcommittees[subcommitteeIndex].members.splice(memberIndex, 1);
-    setSubcommittees(updatedSubcommittees);
-  };
-
   const TYPE_CHOICES = [
     { value: 0, label: "Permanent Teaching" },
     { value: 1, label: "Guest Teaching" },
@@ -287,36 +276,6 @@ const Committee = () => {
 
           <div className="flex space-x-4 mb-4">
             <Select
-              options={employeeOptions}
-              onChange={handleMainCommitteeSelection}
-              isMulti
-              className="flex-1"
-              placeholder="Select Employees for Main Committee"
-              isSearchable={true} // Keep the search functionality
-              hideSelectedOptions={true} // Hide selected options in the field
-              closeMenuOnSelect={false} // Keep the dropdown open after selecting an option
-              styles={{
-                control: (base) => ({
-                  ...base,
-                  backgroundColor: "#1F2937",
-                  color: "white",
-                }),
-                menu: (base) => ({
-                  ...base,
-                  backgroundColor: "#1F2937",
-                  color: "white",
-                }),
-                option: (base, { isFocused }) => ({
-                  ...base,
-                  backgroundColor: isFocused ? "#3B82F6" : "#1F2937",
-                }),
-                multiValue: (base) => ({
-                  display: "none", // Hide the selected options display
-                }),
-              }}
-            />
-
-            <Select
               options={[
                 { value: "", label: "All Employee Types" }, // Default option
                 ...TYPE_CHOICES,
@@ -384,6 +343,51 @@ const Committee = () => {
               }}
             />
           </div>
+          <Select
+                options={employeeOptions}
+                onChange={handleMainCommitteeSelection}
+                isMulti
+                className="w-full"
+                placeholder="Select Members for Subcommittee"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    backgroundColor: "#1F2937",
+                    color: "white",
+                    minHeight: "50px", // Fixed minimum height
+                    width: "100%", // Ensure the width is fixed and consistent
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    backgroundColor: "#1F2937",
+                    color: "white",
+                  }),
+                  option: (base, { isFocused }) => ({
+                    ...base,
+                    backgroundColor: isFocused ? "#3B82F6" : "#1F2937",
+                  }),
+                  multiValue: (base) => ({
+                    ...base,
+                    backgroundColor: "#3B82F6",
+                    maxWidth: "100px", // Fixed width for each selected option tag
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }),
+                  multiValueLabel: (base) => ({
+                    ...base,
+                    color: "white",
+                  }),
+                  multiValueRemove: (base) => ({
+                    ...base,
+                    color: "white",
+                    ":hover": {
+                      backgroundColor: "#3B82F6",
+                      color: "white",
+                    },
+                  }),
+                }}
+              />
 
           <div className="flex justify-center">
             <div className="flex flex-col space-y-4 w-full max-w-3xl">
@@ -411,12 +415,6 @@ const Committee = () => {
                     }
                     className="p-1 rounded-md bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-20" // Fixed width for score
                   />
-                  <button
-                    onClick={() => handleRemoveMember(index)}
-                    className="text-red-500 hover:text-red-700 focus:outline-none"
-                  >
-                    Remove
-                  </button>
                 </div>
               ))}
             </div>
@@ -474,6 +472,8 @@ const Committee = () => {
                     ...base,
                     backgroundColor: "#1F2937",
                     color: "white",
+                    minHeight: "50px", // Fixed minimum height
+                    width: "100%", // Ensure the width is fixed and consistent
                   }),
                   menu: (base) => ({
                     ...base,
@@ -487,10 +487,22 @@ const Committee = () => {
                   multiValue: (base) => ({
                     ...base,
                     backgroundColor: "#3B82F6",
+                    maxWidth: "100px", // Fixed width for each selected option tag
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
                   }),
                   multiValueLabel: (base) => ({
                     ...base,
                     color: "white",
+                  }),
+                  multiValueRemove: (base) => ({
+                    ...base,
+                    color: "white",
+                    ":hover": {
+                      backgroundColor: "#3B82F6",
+                      color: "white",
+                    },
                   }),
                 }}
               />
@@ -529,15 +541,6 @@ const Committee = () => {
                     }
                     className="p-1 rounded-md bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-20" // Fixed width for score
                   />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeMemberFromSubcommittee(index, memberIndex)
-                    }
-                    className="p-2 text-red-500 hover:text-red-600"
-                  >
-                    Remove Member
-                  </button>
                 </div>
               ))}
             </div>
@@ -553,7 +556,7 @@ const Committee = () => {
 
           <button
             type="submit"
-            className="mt-8 px-6 py-3 bg-green-500 rounded-md text-white font-semibold hover:bg-green-600"
+            className="mt-8 ml-52 px-6 py-3 bg-green-500 rounded-md text-white font-semibold hover:bg-green-600"
           >
             Save Committee
           </button>
