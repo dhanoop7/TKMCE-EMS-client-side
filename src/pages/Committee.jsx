@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Sidebar from "../components/SideBar";
 import axios from "axios";
 import requests from "../config";
-import Select from "react-select";
 
 const Committee = () => {
   const [committeeData, setCommitteeData] = useState({
@@ -13,162 +13,24 @@ const Committee = () => {
     orderText: "",
     description: "",
   });
-  const [existingCommittees, setExistingCommittees] = useState([]);
-  const [employees, setEmployees] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [designations, setDesignations] = useState([]);
-  const [mainCommitteeMembers, setMainCommitteeMembers] = useState([]);
-  const [subcommittees, setSubcommittees] = useState([]);
-  const [department, setDepartment] = useState("");
-  const [empType, setEmpType] = useState("");
-  const [searchName, setSearchName] = useState("");
 
-  useEffect(() => {
-    fetchDepartments();
-  }, []);
-
-  useEffect(() => {
-    fetchEmployees();
-  }, [department, empType]);
-
-  const fetchDepartments = async () => {
-    try {
-      const response = await axios.get(
-        `${requests.BaseUrlEmployee}/departments/`
-      );
-      setDepartments(Array.isArray(response.data) ? response.data : []);
-    } catch (error) {
-      console.error("Error fetching departments:", error);
-      setDepartments([]);
-    }
-  };
-
-  const fetchEmployees = async () => {
-    try {
-      const response = await axios.get(
-        `${requests.BaseUrlEmployee}/filter-employee/`,
-        {
-          params: { department, type: empType },
-        }
-      );
-      setEmployees(Array.isArray(response.data) ? response.data : []);
-    } catch (error) {
-      console.error("Error fetching employees:", error);
-      setEmployees([]);
-    }
-  };
+  const navigate = useNavigate(); // Initialize navigate function
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCommitteeData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleMainCommitteeSelection = (selectedOptions) => {
-    const selectedMembersWithDetails = selectedOptions.map((option) => ({
-      id: option.id,
-      name: option.label,
-      role: "",
-      score: "",
-    }));
-    setMainCommitteeMembers(selectedMembersWithDetails);
-  };
-
-  const handleSubcommitteeSelection = (selectedOptions, index) => {
-    const selectedMembersWithDetails = selectedOptions.map((option) => ({
-      id: option.id,
-      name: option.label,
-      role: "",
-      score: "",
-    }));
-    const updatedSubcommittees = [...subcommittees];
-    updatedSubcommittees[index].members = selectedMembersWithDetails;
-    setSubcommittees(updatedSubcommittees);
-  };
-
-  const handleRoleScoreChange = (index, field, value) => {
-    setMainCommitteeMembers((prev) => {
-      const updatedMembers = [...prev];
-      updatedMembers[index][field] = value;
-      return updatedMembers;
-    });
-  };
-
-  const removeSubcommittee = (index) => {
-    const updatedSubcommittees = [...subcommittees];
-    updatedSubcommittees.splice(index, 1);
-    setSubcommittees(updatedSubcommittees);
-  };
-
-  const handleSubcommitteeRoleScoreChange = (
-    subIndex,
-    memberIndex,
-    field,
-    value
-  ) => {
-    setSubcommittees((prev) =>
-      prev.map((subcommittee, sIndex) =>
-        sIndex === subIndex
-          ? {
-              ...subcommittee,
-              members: subcommittee.members.map((member, mIndex) =>
-                mIndex === memberIndex ? { ...member, [field]: value } : member
-              ),
-            }
-          : subcommittee
-      )
-    );
-  };
-
-  const handleSubcommitteeChange = (index, field, value) => {
-    const updatedSubcommittees = [...subcommittees];
-    updatedSubcommittees[index][field] = value;
-    setSubcommittees(updatedSubcommittees);
-  };
-
-  const addSubcommittee = () => {
-    setSubcommittees((prev) => [
-      ...prev,
-      { sub_committee_name: "", sub_committee_Text: "", members: [] },
-    ]);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate main committee members' role and score
-    const invalidMembers = mainCommitteeMembers.some(
-      (member) => !member.role || member.score === ""
-    );
-
-    if (invalidMembers) {
-      alert("Please ensure all main committee members have a role and score.");
-      return;
-    }
-
     const payload = {
-      committee: {
-        order_number: committeeData.orderNumber,
-        committe_Name: committeeData.committeeName,
-        order_date: committeeData.orderDate,
-        order_Text: committeeData.orderText,
-        order_Description: committeeData.description,
-        committe_Expiry: committeeData.expiry,
-        is_active: true,
-      },
-      members: mainCommitteeMembers.map((member) => ({
-        employee_id: member.id,
-        role: member.role,
-        score: member.score,
-      })),
-      subcommittees: subcommittees.map((subcommittee) => ({
-        sub_committee_name: subcommittee.sub_committee_name,
-        sub_committee_Text: subcommittee.sub_committee_Text,
-        members: subcommittee.members.map((submember) => ({
-          employee_id: submember.id,
-          role: submember.role,
-          score: submember.score,
-        })),
-      })),
+      order_number: committeeData.orderNumber,
+      committe_Name: committeeData.committeeName,
+      order_date: committeeData.orderDate,
+      order_Text: committeeData.orderText,
+      order_Description: committeeData.description,
+      committe_Expiry: committeeData.expiry,
     };
 
     try {
@@ -176,7 +38,10 @@ const Committee = () => {
         `${requests.BaseUrlCommittee}/create-committee/`,
         payload
       );
-      alert("Committee and members saved successfully!");
+
+      console.log(response.data);
+      alert("Committee saved successfully!");
+
       // Reset form states
       setCommitteeData({
         orderNumber: "",
@@ -186,25 +51,14 @@ const Committee = () => {
         orderText: "",
         description: "",
       });
-      setMainCommitteeMembers([]);
-      setSubcommittees([]);
+
+      // Redirect to the Add Members page with the new committee ID
+      navigate(`/add-members/${response.data.id}`);
     } catch (error) {
       console.error("Error saving committee:", error);
       alert("An error occurred while saving the committee. Please try again.");
     }
   };
-
-  const employeeOptions = employees.map((emp) => ({
-    value: emp.id,
-    label: `${emp.name} - ${emp.designation_name} - ${emp.department_name}`,
-    id: emp.id,
-  }));
-
-  const TYPE_CHOICES = [
-    { value: 0, label: "Permanent Teaching" },
-    { value: 1, label: "Guest Teaching" },
-    { value: 2, label: "Non-Teaching" },
-  ];
 
   return (
     <div className="pt-24 flex h-full overflow-hidden bg-gray-800 text-white">
@@ -214,7 +68,7 @@ const Committee = () => {
 
       <div className="flex-grow p-10 pb-20">
         <h2 className="text-3xl font-bold text-center mb-8">
-          Manage Committees
+          Add Committee
         </h2>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
@@ -242,7 +96,6 @@ const Committee = () => {
               onChange={handleInputChange}
               className="p-3 rounded-md bg-gray-800 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-
             <input
               type="number"
               name="expiry"
@@ -251,7 +104,6 @@ const Committee = () => {
               placeholder="Expiry (years)"
               className="p-3 rounded-md bg-gray-800 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-
             <input
               type="text"
               name="orderText"
@@ -270,295 +122,11 @@ const Committee = () => {
             />
           </div>
 
-          <h3 className="text-2xl font-semibold mb-4">
-            Add Main Committee Members
-          </h3>
-
-          <div className="flex space-x-4 mb-4">
-            <Select
-              options={[
-                { value: "", label: "All Employee Types" }, // Default option
-                ...TYPE_CHOICES,
-              ]}
-              onChange={(option) => {
-                setEmpType(option.value);
-                // Optionally reset any other filters if needed
-              }}
-              className="flex-1"
-              placeholder="Select Employee Type"
-              styles={{
-                control: (base) => ({
-                  ...base,
-                  backgroundColor: "#1F2937",
-                  color: "white",
-                }),
-                menu: (base) => ({
-                  ...base,
-                  backgroundColor: "#1F2937",
-                  color: "white",
-                }),
-                option: (base, { isFocused }) => ({
-                  ...base,
-                  backgroundColor: isFocused ? "#3B82F6" : "#1F2937",
-                }),
-                singleValue: (base) => ({
-                  ...base,
-                  color: "white",
-                }),
-              }}
-            />
-            <Select
-              options={[
-                { value: "", label: "All Departments" }, // Default option
-                ...departments.map((dep) => ({
-                  value: dep.id,
-                  label: dep.department_name,
-                })),
-              ]}
-              onChange={(option) => {
-                setDepartment(option.value);
-                // Optionally reset any other filters if needed
-              }}
-              className="flex-1"
-              placeholder="Select Department"
-              styles={{
-                control: (base) => ({
-                  ...base,
-                  backgroundColor: "#1F2937",
-                  color: "white",
-                }),
-                menu: (base) => ({
-                  ...base,
-                  backgroundColor: "#1F2937",
-                  color: "white",
-                }),
-                option: (base, { isFocused }) => ({
-                  ...base,
-                  backgroundColor: isFocused ? "#3B82F6" : "#1F2937",
-                }),
-                singleValue: (base) => ({
-                  ...base,
-                  color: "white",
-                }),
-              }}
-            />
-          </div>
-          <Select
-                options={employeeOptions}
-                onChange={handleMainCommitteeSelection}
-                isMulti
-                className="w-full"
-                placeholder="Select Members for Subcommittee"
-                styles={{
-                  control: (base) => ({
-                    ...base,
-                    backgroundColor: "#1F2937",
-                    color: "white",
-                    minHeight: "50px", // Fixed minimum height
-                    width: "100%", // Ensure the width is fixed and consistent
-                  }),
-                  menu: (base) => ({
-                    ...base,
-                    backgroundColor: "#1F2937",
-                    color: "white",
-                  }),
-                  option: (base, { isFocused }) => ({
-                    ...base,
-                    backgroundColor: isFocused ? "#3B82F6" : "#1F2937",
-                  }),
-                  multiValue: (base) => ({
-                    ...base,
-                    backgroundColor: "#3B82F6",
-                    maxWidth: "100px", // Fixed width for each selected option tag
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }),
-                  multiValueLabel: (base) => ({
-                    ...base,
-                    color: "white",
-                  }),
-                  multiValueRemove: (base) => ({
-                    ...base,
-                    color: "white",
-                    ":hover": {
-                      backgroundColor: "#3B82F6",
-                      color: "white",
-                    },
-                  }),
-                }}
-              />
-
-          <div className="flex justify-center">
-            <div className="flex flex-col space-y-4 w-full max-w-3xl">
-              {mainCommitteeMembers.map((member, index) => (
-                <div
-                  key={index}
-                  className="flex items-center space-x-2 bg-gray-800 p-2 rounded-md"
-                >
-                  <span className="text-white w-1/4">{member.name}</span>
-                  <input
-                    type="text"
-                    placeholder="Role"
-                    value={member.role}
-                    onChange={(e) =>
-                      handleRoleScoreChange(index, "role", e.target.value)
-                    }
-                    className="p-1 rounded-md bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Score"
-                    value={member.score}
-                    onChange={(e) =>
-                      handleRoleScoreChange(index, "score", e.target.value)
-                    }
-                    className="p-1 rounded-md bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-20" // Fixed width for score
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <h3 className="text-2xl font-semibold mb-4">Manage Subcommittees</h3>
-          {subcommittees.map((subcommittee, index) => (
-            <div key={index} className="mb-6">
-              <div className="flex space-x-4 mb-4 items-center">
-                <input
-                  type="text"
-                  placeholder="Subcommittee Name"
-                  value={subcommittee.sub_committee_name}
-                  onChange={(e) =>
-                    handleSubcommitteeChange(
-                      index,
-                      "sub_committee_name",
-                      e.target.value
-                    )
-                  }
-                  className="p-2 rounded-md bg-gray-800 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
-                />
-                <input
-                  type="text"
-                  placeholder="Order Text"
-                  value={subcommittee.sub_committee_Text}
-                  onChange={(e) =>
-                    handleSubcommitteeChange(
-                      index,
-                      "sub_committee_Text",
-                      e.target.value
-                    )
-                  }
-                  className="p-2 rounded-md bg-gray-800 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeSubcommittee(index)}
-                  className="p-2 text-red-500 hover:text-red-600"
-                >
-                  Remove Subcommittee
-                </button>
-              </div>
-
-              <Select
-                options={employeeOptions}
-                onChange={(selectedOptions) =>
-                  handleSubcommitteeSelection(selectedOptions, index)
-                }
-                isMulti
-                className="w-full"
-                placeholder="Select Members for Subcommittee"
-                styles={{
-                  control: (base) => ({
-                    ...base,
-                    backgroundColor: "#1F2937",
-                    color: "white",
-                    minHeight: "50px", // Fixed minimum height
-                    width: "100%", // Ensure the width is fixed and consistent
-                  }),
-                  menu: (base) => ({
-                    ...base,
-                    backgroundColor: "#1F2937",
-                    color: "white",
-                  }),
-                  option: (base, { isFocused }) => ({
-                    ...base,
-                    backgroundColor: isFocused ? "#3B82F6" : "#1F2937",
-                  }),
-                  multiValue: (base) => ({
-                    ...base,
-                    backgroundColor: "#3B82F6",
-                    maxWidth: "100px", // Fixed width for each selected option tag
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }),
-                  multiValueLabel: (base) => ({
-                    ...base,
-                    color: "white",
-                  }),
-                  multiValueRemove: (base) => ({
-                    ...base,
-                    color: "white",
-                    ":hover": {
-                      backgroundColor: "#3B82F6",
-                      color: "white",
-                    },
-                  }),
-                }}
-              />
-
-              {subcommittee.members.map((member, memberIndex) => (
-                <div
-                  key={memberIndex}
-                  className="flex items-center space-x-2 mt-2 bg-gray-800 p-2 rounded-md"
-                >
-                  <span className="text-white w-1/4">{member.name}</span>
-                  <input
-                    type="text"
-                    placeholder="Role"
-                    value={member.role}
-                    onChange={(e) =>
-                      handleSubcommitteeRoleScoreChange(
-                        index,
-                        memberIndex,
-                        "role",
-                        e.target.value
-                      )
-                    }
-                    className="p-1 rounded-md bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Score"
-                    value={member.score}
-                    onChange={(e) =>
-                      handleSubcommitteeRoleScoreChange(
-                        index,
-                        memberIndex,
-                        "score",
-                        e.target.value
-                      )
-                    }
-                    className="p-1 rounded-md bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-20" // Fixed width for score
-                  />
-                </div>
-              ))}
-            </div>
-          ))}
-
-          <button
-            type="button"
-            onClick={addSubcommittee}
-            className="p-2 bg-blue-500 rounded-md text-white hover:bg-blue-600"
-          >
-            Add Subcommittee
-          </button>
-
           <button
             type="submit"
-            className="mt-8 ml-52 px-6 py-3 bg-green-500 rounded-md text-white font-semibold hover:bg-green-600"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            Save Committee
+            Save Committee and Add Members
           </button>
         </form>
       </div>
