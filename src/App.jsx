@@ -10,6 +10,7 @@ import GenerateCommitteeReport from './pages/GenerateCommitteeReport';
 import CommitteeDetail from './pages/CommitteeDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 import CommitteeMembersAdd from './pages/CommitteeMembersAdd';
+import AddSubCommittee from './pages/AddSubCommittee';
 
  // Import ProtectedRoute
 
@@ -24,7 +25,9 @@ function App() {
         <Route path="/admin-dashboard" element={<ProtectedRoute element={AdminDashboard} />} />
         <Route path="/committee-dashboard" element={<ProtectedRoute element={CommitteeMain} />} />
         <Route path="/committee" element={<ProtectedRoute element={Committee} />} />
-        <Route path="/add-members/:id" element={<ProtectedRoute element={CommitteeMembersAdd} />} />
+        <Route path="/add-members/:committe_id" element={<ProtectedRoute element={CommitteeMembersAdd} />} />
+        <Route path="/add-subcommittee/:id" element={<ProtectedRoute element={AddSubCommittee} />} />
+        {/* <Route path="/add-members" element={<ProtectedRoute element={CommitteeMembersAdd} />} /> */}
         <Route path="/generate-report" element={<ProtectedRoute element={GenerateCommitteeReport} />} />
         <Route path="/committee-detail/:id" element={<ProtectedRoute element={CommitteeDetail} />} />
         <Route path="/employee" element={<ProtectedRoute element={EmployeeManagement} />} />

@@ -61,7 +61,7 @@ const Committee = () => {
   };
 
   return (
-    <div className="pt-24 flex h-full overflow-hidden bg-gray-800 text-white">
+    <div className="pt-24 min-h-screen flex h-full overflow-hidden bg-gray-800 text-white">
       <div className="md:w-[18rem]">
         <Sidebar />
       </div>
