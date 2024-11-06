@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../components/SideBar";
 import requests from "../config";
 import axios from "axios";
@@ -16,6 +16,7 @@ const AddSubCommittee = () => {
   const [subCommitteeId, setSubCommitteeId] = useState(null);
   const [subCommitteeName, setSubCommitteeName] = useState(null)
   const [showAddModal, setShowAddModal] = useState(false);
+  const navigate = useNavigate();
 
   // Fetch committee details
   useEffect(() => {
@@ -60,6 +61,10 @@ const AddSubCommittee = () => {
         console.error("Error creating subcommittee:", error);
         alert("Failed to create subcommittee.");
       });
+  };
+
+  const handleFinish = () => {
+    navigate(`/committee-detail/${id}`);
   };
 
   return (
@@ -126,6 +131,16 @@ const AddSubCommittee = () => {
                 </button>
               </div>
             </form>
+
+            <div className="flex justify-center mt-8">
+              <button
+                type="button"
+                className="px-6 py-3 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                onClick={handleFinish}
+              >
+                Finish
+              </button>
+            </div>
 
             {/* AddSubmemberModal should only be displayed when showAddModal is true */}
             <AddSubmemberModal

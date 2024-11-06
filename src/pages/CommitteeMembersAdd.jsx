@@ -6,14 +6,17 @@ import axios from "axios";
 import requests from "../config";
 
 const CommitteeMembersAdd = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { committe_id } = useParams();
   console.log("Committee ID:", committe_id);
+  
   const [departments, setDepartments] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [selectedType, setSelectedType] = useState(null);
   const [employees, setEmployees] = useState([]);
+  const [topScoringEmployees, setTopScoringEmployees] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
+  const [selectedTopScorers, setSelectedTopScorers] = useState([]);
 
   const employeeTypes = [
     { value: null, label: "All Types" },
@@ -24,6 +27,7 @@ const CommitteeMembersAdd = () => {
 
   useEffect(() => {
     fetchDepartments();
+    fetchTopScoringEmployees();
   }, []);
 
   useEffect(() => {
@@ -32,9 +36,7 @@ const CommitteeMembersAdd = () => {
 
   const fetchDepartments = async () => {
     try {
-      const response = await axios.get(
-        `${requests.BaseUrlEmployee}/departments/`
-      );
+      const response = await axios.get(`${requests.BaseUrlEmployee}/departments/`);
       const departmentOptions = response.data.map((department) => ({
         value: department.id,
         label: department.department_name,
@@ -56,11 +58,7 @@ const CommitteeMembersAdd = () => {
         params.type = selectedType.value;
       }
 
-      const response = await axios.get(
-        `${requests.BaseUrlEmployee}/filter-employee/`,
-        { params }
-      );
-
+      const response = await axios.get(`${requests.BaseUrlEmployee}/filter-employee/`, { params });
       const employeeOptions = response.data.map((employee) => ({
         value: employee.id,
         label: `${employee.name} - ${employee.designation_name} (${employee.department_name})`,
@@ -71,57 +69,103 @@ const CommitteeMembersAdd = () => {
     }
   };
 
+  const fetchTopScoringEmployees = async () => {
+    try {
+      const response = await axios.get(`${requests.BaseUrlEmployee}/employees-by-score/`);
+      const sortedEmployeeOptions = response.data
+        .map((employee) => ({
+          value: employee.employee_id,
+          label: `${employee.employee_name} (${employee.department_name}) - Score: ${employee.total_score}`,
+          score: employee.total_score,  // Adding score for sorting
+        }))
+        .sort((a, b) => b.score - a.score);  // Sort by score in descending order
+  
+      setTopScoringEmployees(sortedEmployeeOptions);
+    } catch (error) {
+      console.error("Error fetching top scoring employees:", error);
+    }
+  };
+
   const handleEmployeeSelect = (selectedOptions) => {
-    const updatedEmployees = selectedOptions.map((option) => {
-      const existingEmployee = selectedEmployees.find(
-        (emp) => emp.value === option.value
-      );
+    const combinedSelection = [...selectedTopScorers, ...selectedEmployees];
+    
+    const uniqueSelectedEmployees = selectedOptions.map((option) => {
+      const existingEmployee = combinedSelection.find((emp) => emp.value === option.value);
       return {
         ...option,
         role: existingEmployee ? existingEmployee.role : "",
         score: existingEmployee ? existingEmployee.score : "",
       };
     });
-    setSelectedEmployees(updatedEmployees);
+    
+    setSelectedEmployees(uniqueSelectedEmployees);
   };
-
-  const handleRoleChange = (index, value) => {
-    const updatedEmployees = [...selectedEmployees];
-    updatedEmployees[index].role = value;
-    setSelectedEmployees(updatedEmployees);
+  
+  const handleTopScorerSelect = (selectedOptions) => {
+    const combinedSelection = [...selectedTopScorers, ...selectedEmployees];
+  
+    const uniqueTopScorers = selectedOptions.map((option) => {
+      const existingEmployee = combinedSelection.find((emp) => emp.value === option.value);
+      return {
+        ...option,
+        role: existingEmployee ? existingEmployee.role : "",
+        score: existingEmployee ? existingEmployee.score : "",
+      };
+    });
+  
+    setSelectedTopScorers(uniqueTopScorers);
   };
-
-  const handleScoreChange = (index, value) => {
-    const updatedEmployees = [...selectedEmployees];
-    updatedEmployees[index].score = value;
-    setSelectedEmployees(updatedEmployees);
+  
+  const handleRoleChange = (index, role, isTopScorer) => {
+    const updateList = isTopScorer ? selectedTopScorers : selectedEmployees;
+    const updatedList = [...updateList];
+    
+    updatedList[index] = { ...updatedList[index], role };
+    
+    if (isTopScorer) {
+      setSelectedTopScorers(updatedList);
+    } else {
+      setSelectedEmployees(updatedList);
+    }
   };
+  
+  const handleScoreChange = (index, score, isTopScorer) => {
+    const updateList = isTopScorer ? selectedTopScorers : selectedEmployees;
+    const updatedList = [...updateList];
+  
+    updatedList[index] = { ...updatedList[index], score };
+  
+    if (isTopScorer) {
+      setSelectedTopScorers(updatedList);
+    } else {
+      setSelectedEmployees(updatedList);
+    }
+  };
+  
 
   const handleAddEmployee = async () => {
     const committeeId = committe_id;
-    const members = selectedEmployees.map((employee) => ({
+    const members = [...selectedEmployees, ...selectedTopScorers].map((employee) => ({
       employee_id: employee.value,
       role: employee.role,
       score: employee.score,
     }));
+    console.log('members',members);
 
     try {
-      const response = await axios.post(
-        `${requests.BaseUrlCommittee}/add-main-committee-members/`,
-        {
-          committee_id: committeeId,
-          members: members,
-        }
-      );
+      const response = await axios.post(`${requests.BaseUrlCommittee}/add-main-committee-members/`, {
+        committee_id: committeeId,
+        members: members,
+      });
       console.log("Response:", response.data);
       alert("Main committee members added successfully!");
 
-      // Reset all states after successful submission
       setSelectedEmployees([]);
+      setSelectedTopScorers([]);
       setSelectedDepartment(null);
       setSelectedType(null);
       setEmployees([]);
-      navigate(`/committee-detail/${committe_id}`)
+      navigate(`/committee-detail/${committe_id}`);
       
     } catch (error) {
       console.error("Error adding employees to committee:", error);
@@ -156,10 +200,6 @@ const CommitteeMembersAdd = () => {
     }),
   };
 
-  // const handleAddSubCommittee = () => {
-  //   navigate(`/add-subcommittee/${committe_id}`); // Navigate to the subcommittee page
-  // };
-
   return (
     <div className="pt-24 flex min-h-screen bg-gray-900 text-white">
       <div className="md:w-[18rem]">
@@ -172,7 +212,6 @@ const CommitteeMembersAdd = () => {
         </h2>
 
         <div className="grid gap-8 md:grid-cols-2">
-          {/* Department Selection */}
           <div className="mb-6">
             <label className="block text-lg font-semibold mb-2 text-gray-300">
               Department
@@ -187,7 +226,6 @@ const CommitteeMembersAdd = () => {
             />
           </div>
 
-          {/* Type Selection */}
           <div className="mb-6">
             <label className="block text-lg font-semibold mb-2 text-gray-300">
               Type
@@ -202,10 +240,9 @@ const CommitteeMembersAdd = () => {
             />
           </div>
 
-          {/* Employee Multi-Selection */}
           <div className="mb-6 md:col-span-2">
             <label className="block text-lg font-semibold mb-2 text-gray-300">
-              Employee
+              Select Employees by Department/Type
             </label>
             <Select
               options={employees}
@@ -230,11 +267,12 @@ const CommitteeMembersAdd = () => {
                 option: (base, { isFocused }) => ({
                   ...base,
                   backgroundColor: isFocused ? "#3B82F6" : "#1F2937",
+                  color: "#fff",
                 }),
                 multiValue: (base) => ({
                   ...base,
                   backgroundColor: "#3B82F6",
-                  maxWidth: "100px",
+                  maxWidth: "150px",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
@@ -255,70 +293,152 @@ const CommitteeMembersAdd = () => {
             />
           </div>
 
-          {/* Roles and Scores for Selected Employees */}
+          <div className="mb-6 md:col-span-2">
+            <label className="block text-lg font-semibold mb-2 text-gray-300">
+              Select Top-Scoring Employees
+            </label>
+            <Select
+              options={topScoringEmployees}
+              value={selectedTopScorers}
+              onChange={handleTopScorerSelect}
+              placeholder="Select top-scoring employees"
+              className="text-gray-100"
+              isMulti
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  backgroundColor: "#1F2937",
+                  color: "white",
+                  minHeight: "50px",
+                  width: "100%",
+                }),
+                menu: (base) => ({
+                  ...base,
+                  backgroundColor: "#1F2937",
+                  color: "white",
+                }),
+                option: (base, { isFocused }) => ({
+                  ...base,
+                  backgroundColor: isFocused ? "#3B82F6" : "#1F2937",
+                  color: "#fff",
+                }),
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: "#3B82F6",
+                  maxWidth: "150px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }),
+                multiValueLabel: (base) => ({
+                  ...base,
+                  color: "white",
+                }),
+                multiValueRemove: (base) => ({
+                  ...base,
+                  color: "white",
+                  ":hover": {
+                    backgroundColor: "#3B82F6",
+                    color: "white",
+                  },
+                }),
+              }}
+            />
+          </div>
+
           <div className="md:col-span-2 space-y-6">
             {selectedEmployees.map((employee, index) => (
               <div
-                key={employee.value}
+                key={`selected-${employee.value}-${index}`}
                 className="bg-gray-800 p-4 rounded-md shadow-lg border border-gray-700"
               >
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-lg font-semibold text-gray-100">
-                    {employee.label}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {/* Role Input */}
+                <p className="text-lg font-semibold text-gray-100 mb-4">
+                  {employee.label}
+                </p>
+                <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                    <label className="block font-medium text-gray-300">
                       Role
                     </label>
                     <input
                       type="text"
+                      value={employee.role || ""}
+                      onChange={(e) =>
+                        handleRoleChange(index, e.target.value, false)
+                      }
                       placeholder="Enter role"
-                      value={employee.role}
-                      onChange={(e) => handleRoleChange(index, e.target.value)}
-                      className="w-full bg-gray-700 p-2 rounded-md text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full p-2 mt-2 bg-gray-900 border border-gray-600 rounded-md text-white focus:outline-none"
                     />
                   </div>
 
-                  {/* Score Input */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                    <label className="block font-medium text-gray-300">
                       Score
                     </label>
                     <input
                       type="number"
-                      placeholder="Enter score"
-                      value={employee.score}
+                      value={employee.score || ""}
                       onChange={(e) =>
-                        handleScoreChange(index, e.target.value)
+                        handleScoreChange(index, e.target.value, false)
                       }
-                      className="w-full bg-gray-700 p-2 rounded-md text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      placeholder="Enter score"
+                      className="w-full p-2 mt-2 bg-gray-900 border border-gray-600 rounded-md text-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {selectedTopScorers.map((employee, index) => (
+              <div
+                key={`top-scorer-${employee.value}-${index}`}
+                className="bg-gray-800 p-4 rounded-md shadow-lg border border-gray-700"
+              >
+                <p className="text-lg font-semibold text-gray-100 mb-4">
+                  {employee.label}
+                </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="block font-medium text-gray-300">
+                      Role
+                    </label>
+                    <input
+                      type="text"
+                      value={employee.role || ""}
+                      onChange={(e) =>
+                        handleRoleChange(index, e.target.value, true)
+                      }
+                      placeholder="Enter role"
+                      className="w-full p-2 mt-2 bg-gray-900 border border-gray-600 rounded-md text-white focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-medium text-gray-300">
+                      Score
+                    </label>
+                    <input
+                      type="number"
+                      value={employee.score || ""}
+                      onChange={(e) =>
+                        handleScoreChange(index, e.target.value, true)
+                      }
+                      placeholder="Enter score"
+                      className="w-full p-2 mt-2 bg-gray-900 border border-gray-600 rounded-md text-white focus:outline-none"
                     />
                   </div>
                 </div>
               </div>
             ))}
           </div>
+        </div>
 
-          {/* Submit Button */}
-          <div className="flex justify-between mt-8">
-          <button
-            onClick={handleAddEmployee}
-            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded"
-          >
-            Finish
-          </button>
-          {/* <button
-            onClick={handleAddSubCommittee} // Button to navigate to Add Subcommittee page
-            className="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-4 rounded"
-          >
-            Add Subcommittee
-          </button> */}
-        </div>
-        </div>
+        <button
+          onClick={handleAddEmployee}
+          className="w-full p-4 mt-10 text-lg font-semibold bg-blue-500 rounded-md text-white hover:bg-blue-600 focus:outline-none"
+        >
+          Add Committee Members
+        </button>
       </div>
     </div>
   );
