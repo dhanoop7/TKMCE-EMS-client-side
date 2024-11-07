@@ -20,7 +20,8 @@ const CommitteeMembersAdd = () => {
     { value: null, label: "All Types" },
     { value: 0, label: "Permanent Teaching" },
     { value: 1, label: "Guest Teaching" },
-    { value: 2, label: "Non-Teaching" },
+    { value: 2, label: "Permanent Non-Teaching" },
+    { value: 3, label: "Temporary Non-Teaching" },
   ];
 
   useEffect(() => {
@@ -160,24 +161,24 @@ const CommitteeMembersAdd = () => {
 
         <div className="grid gap-8 md:grid-cols-2">
           <div className="mb-6">
-            <label className="block text-lg font-semibold mb-2 text-gray-300">Department</label>
-            <Select
-              options={departments}
-              value={selectedDepartment}
-              onChange={setSelectedDepartment}
-              placeholder="Select a department"
-              styles={customSelectStyles}
-              className="text-gray-100"
-            />
-          </div>
-
-          <div className="mb-6">
             <label className="block text-lg font-semibold mb-2 text-gray-300">Type</label>
             <Select
               options={employeeTypes}
               value={selectedType}
               onChange={setSelectedType}
               placeholder="Select a type"
+              styles={customSelectStyles}
+              className="text-gray-100"
+            />
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-lg font-semibold mb-2 text-gray-300">Department</label>
+            <Select
+              options={departments}
+              value={selectedDepartment}
+              onChange={setSelectedDepartment}
+              placeholder="Select a department"
               styles={customSelectStyles}
               className="text-gray-100"
             />

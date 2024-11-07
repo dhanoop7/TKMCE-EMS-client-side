@@ -20,7 +20,9 @@ const AddSubmemberModal = ({
     { value: null, label: "All Types" },
     { value: 0, label: "Permanent Teaching" },
     { value: 1, label: "Guest Teaching" },
-    { value: 2, label: "Non-Teaching" },
+    { value: 2, label: "Permanent Non-Teaching" },
+    { value: 3, label: "Temporary Non-Teaching" },
+    
   ];
 
   const customSelectStyles = {
