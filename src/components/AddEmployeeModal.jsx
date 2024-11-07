@@ -34,7 +34,8 @@ const AddEmployeeModal = ({ showModal, closeModal }) => {
   const typeOptions = [
     { value: 0, label: "Permanent Teaching" },
     { value: 1, label: "Guest Teaching" },
-    { value: 2, label: "Non-Teaching" },
+    { value: 2, label: "Permanent Non-Teaching" },
+    { value: 3, label: "Temporary Non-Teaching" },
   ];
 
   useEffect(() => {
@@ -276,8 +277,21 @@ const AddEmployeeModal = ({ showModal, closeModal }) => {
                       {errors.email[0]}
                     </p>
                   )}
+
+                  <label className="block text-sm font-medium text-white mb-1">
+                    DOB
+                  </label>
+                  <input
+                  type="date"
+                    name="date_of_birth"
+                    // className="w-full p-2 text-white sm:p-3 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-blue-500 transition"
+                    value={employeeDetails.address}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <div>
+                
                   <label className="block text-sm font-medium text-white mb-1">
                     Address
                   </label>
