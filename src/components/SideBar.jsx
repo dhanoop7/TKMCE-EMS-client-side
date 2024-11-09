@@ -7,8 +7,8 @@ import { MdDashboard } from "react-icons/md";
 
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
-const Sidebar = () => {
-  const [open, setOpen] = useState(true);
+const Sidebar = ({ defaultClosed }) => {
+  const [open, setOpen] = useState( !defaultClosed );
   const navigate = useNavigate(); // Get the navigate function
 
   const menus = [

@@ -3,17 +3,22 @@ import { FaUserPlus, FaSearch } from 'react-icons/fa'; // Icons for add and sear
 import Sidebar from '../components/SideBar';
 import AddEmployeeModal from '../components/AddEmployeeModal'; // Import your modal
 import SearchEmployeeModal from '../components/SearchEmployeeModal'; // Import search modal
+import { useNavigate } from "react-router-dom";
 
 const EmployeeManagement = () => {
+  const navigate = useNavigate()
   const [showAddModal, setShowAddModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [employees, setEmployees] = useState([]);
 
-  const openAddModal = () => setShowAddModal(true);
-  const closeAddModal = () => setShowAddModal(false);
+  // const openAddModal = () => setShowAddModal(true);
+  // const closeAddModal = () => setShowAddModal(false);
   
-  const openSearchModal = () => setShowSearchModal(true);
-  const closeSearchModal = () => setShowSearchModal(false);
+  // const openSearchModal = () => setShowSearchModal(true);
+  // const closeSearchModal = () => setShowSearchModal(false);
+  const openSearchModal =() => {
+    navigate('/under-maintenance')
+  }
 
   const addEmployee = (newEmployee) => {
     setEmployees([...employees, newEmployee]);
@@ -34,8 +39,8 @@ const EmployeeManagement = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           {/* Add Employee Section */}
           <div
-            className="bg-green-500 hover:bg-green-400 p-6 rounded-md shadow-md flex flex-col justify-between items-center text-center cursor-pointer"
-            onClick={openAddModal} // Open modal on click
+            className="bg-gradient-to-r from-blue-600 to-purple-600  transition-transform duration-200 transform hover:scale-105 hover:shadow-2xl p-6 rounded-md shadow-md flex flex-col justify-between items-center text-center cursor-pointer"
+            onClick={openSearchModal} // Open modal on click
           >
             <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2">Add Employee</h3>
             <FaUserPlus className="text-white" size={40} />
@@ -43,7 +48,7 @@ const EmployeeManagement = () => {
 
           {/* Search Employee Section */}
           <div
-            className="bg-blue-500 hover:bg-blue-400 p-6 rounded-md shadow-md flex flex-col justify-between items-center text-center cursor-pointer"
+            className="bg-gradient-to-r from-blue-600 to-purple-600  transition-transform duration-200 transform hover:scale-105 hover:shadow-2xl p-6 rounded-md shadow-md flex flex-col justify-between items-center text-center cursor-pointer"
             onClick={openSearchModal} // Open modal on click
           >
             <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2">Search Employee</h3>
@@ -54,10 +59,10 @@ const EmployeeManagement = () => {
       </div>
 
       {/* Add Employee Modal */}
-      <AddEmployeeModal showModal={showAddModal} closeModal={closeAddModal} addEmployee={addEmployee} />
+      {/* <AddEmployeeModal showModal={showAddModal} closeModal={closeAddModal} addEmployee={addEmployee} /> */}
       
       {/* Search Employee Modal */}
-      <SearchEmployeeModal showModal={showSearchModal} closeModal={closeSearchModal} />
+      {/* <SearchEmployeeModal showModal={showSearchModal} closeModal={closeSearchModal} /> */}
     </div>
   );
 };

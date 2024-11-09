@@ -26,7 +26,7 @@ const CommitteeMain = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           {/* Add Employee Section */}
           <div
-            className="bg-green-500 hover:bg-green-400 p-6 rounded-md shadow-md flex flex-col justify-between items-center text-center cursor-pointer"
+            className="bg-gradient-to-r from-blue-600 to-purple-600  transition-transform duration-200 transform hover:scale-105 hover:shadow-2xl p-6 rounded-md shadow-md flex flex-col justify-between items-center text-center cursor-pointer"
              // Open modal on click
              onClick={handleNavigateAddCommittee}
           >
@@ -36,7 +36,7 @@ const CommitteeMain = () => {
 
           {/* Search Employee Section */}
           <div
-            className="bg-blue-500 hover:bg-blue-400 p-6 rounded-md shadow-md flex flex-col justify-between items-center text-center cursor-pointer"
+            className="bg-gradient-to-r from-blue-600 to-purple-600  transition-transform duration-200 transform hover:scale-105 hover:shadow-2xl p-6 rounded-md shadow-md flex flex-col justify-between items-center text-center cursor-pointer"
             // Open modal on click
             onClick={handleNavigateGenerateReport}
           >

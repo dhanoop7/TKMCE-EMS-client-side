@@ -13,7 +13,9 @@ const GenerateCommitteeReport = () => {
       .get(`${requests.BaseUrlCommittee}/committees/`)
       .then((response) => {
         if (Array.isArray(response.data)) {
-          setCommittees(response.data);
+          // Sort committees to show the newest first
+          const sortedCommittees = response.data.reverse();
+          setCommittees(sortedCommittees);
         } else {
           setCommittees([]);
           console.error("Unexpected data format:", response.data);
@@ -35,25 +37,25 @@ const GenerateCommitteeReport = () => {
         <h2 className="text-4xl font-semibold text-center text-gray-100 mb-8">
           Committee Reports
         </h2>
-        
+
         {committees.length > 0 ? (
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {committees.map((committee, index) => (
               <div
                 key={index}
-                className="bg-gray-800 shadow-lg rounded-lg p-6 hover:shadow-xl transition-shadow duration-200 ease-in-out transform hover:-translate-y-1"
+                className="bg-gray-800 shadow-lg rounded-lg p-6 hover:shadow-xl transition duration-200 transform hover:-translate-y-1"
               >
-                <h3 className="text-2xl font-bold text-gray-200 mb-3">
+                <h3 className="text-2xl font-bold text-gray-200 mb-2">
                   {committee.committe_Name}
                 </h3>
-                <p className="text-gray-400 mb-2">
+                <p className="text-sm text-gray-400 mb-2">
                   <span className="font-medium">Order Number:</span> {committee.order_number}
                 </p>
-                <p className="text-gray-400 mb-4">
+                <p className="text-sm text-gray-400 mb-4 truncate">
                   <span className="font-medium">Order Text:</span> {committee.order_Text}
                 </p>
                 <button
-                  className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition duration-150 ease-in-out focus:outline-none focus:ring focus:ring-blue-300"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition duration-150 ease-in-out focus:outline-none focus:ring focus:ring-blue-300"
                   onClick={() => navigate(`/committee-detail/${committee.id}`)}
                 >
                   View Details
@@ -70,3 +72,4 @@ const GenerateCommitteeReport = () => {
 };
 
 export default GenerateCommitteeReport;
+

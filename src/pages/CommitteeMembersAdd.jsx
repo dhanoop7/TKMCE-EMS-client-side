@@ -15,6 +15,7 @@ const CommitteeMembersAdd = () => {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [employeeDetails, setEmployeeDetails] = useState({});
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
 
   const employeeTypes = [
     { value: null, label: "All Types" },
@@ -33,8 +34,11 @@ const CommitteeMembersAdd = () => {
   }, [selectedDepartment, selectedType]);
 
   const fetchDepartments = async () => {
+    setLoadingEmployees(true);
     try {
-      const response = await axios.get(`${requests.BaseUrlEmployee}/departments/`);
+      const response = await axios.get(
+        `${requests.BaseUrlEmployee}/departments/`
+      );
       const departmentOptions = response.data.map((department) => ({
         value: department.id,
         label: department.department_name,
@@ -43,10 +47,13 @@ const CommitteeMembersAdd = () => {
       setDepartments(departmentOptions);
     } catch (error) {
       console.error("Error fetching departments:", error);
+    } finally {
+      setLoadingEmployees(false); // Stop loading
     }
   };
 
   const fetchEmployees = async () => {
+    setLoadingEmployees(true);
     try {
       const params = {};
       // Only add department and type to params if they are not null
@@ -56,20 +63,25 @@ const CommitteeMembersAdd = () => {
       if (selectedType && selectedType.value !== null) {
         params.type = selectedType.value;
       }
-    
-      const response = await axios.get(`${requests.BaseUrlEmployee}/filter-employee/`, { params });
-      
+
+      const response = await axios.get(
+        `${requests.BaseUrlEmployee}/filter-employee/`,
+        { params }
+      );
+
       // Sort employees by score in descending order (highest score first)
       const employeeOptions = response.data
-        .sort((a, b) => b.total_score - a.total_score)  // Sort by score
+        .sort((a, b) => b.total_score - a.total_score) // Sort by score
         .map((employee) => ({
           value: employee.employee_id,
           label: `${employee.employee_name} - ${employee.designation_name} (${employee.department_name} - Score-${employee.total_score})`,
         }));
-        
+
       setEmployees(employeeOptions);
     } catch (error) {
       console.error("Error fetching employees:", error);
+    } finally {
+      setLoadingEmployees(false); // Stop loading
     }
   };
 
@@ -79,7 +91,10 @@ const CommitteeMembersAdd = () => {
     selectedOptions.forEach((option) => {
       initialDetails[option.value] = { role: "", score: "" };
     });
-    setEmployeeDetails((prevDetails) => ({ ...prevDetails, ...initialDetails }));
+    setEmployeeDetails((prevDetails) => ({
+      ...prevDetails,
+      ...initialDetails,
+    }));
   };
 
   const handleRoleChange = (employeeId, role) => {
@@ -126,6 +141,10 @@ const CommitteeMembersAdd = () => {
     }
   };
 
+  const handleSkip = () => {
+    navigate(`/committee-detail/${committe_id}`);
+  };
+
   const customSelectStyles = {
     control: (provided) => ({
       ...provided,
@@ -153,15 +172,19 @@ const CommitteeMembersAdd = () => {
 
   return (
     <div className="pt-24 flex min-h-screen bg-gray-900 text-white">
-      <div className="md:w-[18rem]">
-        <Sidebar />
-      </div>
+      {/* <div className="md:w-[18rem] ">
+        <Sidebar defaultClosed={true}/>
+      </div> */}
       <div className="flex-grow p-10 pb-20">
-        <h2 className="text-3xl font-bold text-center mb-8 text-blue-400">Add Committee Members</h2>
+        <h2 className="text-3xl font-bold text-center mb-8 text-blue-400">
+          Add Committee Members
+        </h2>
 
-        <div className="grid gap-8 md:grid-cols-2">
+        <div className="grid gap-8 md:grid-cols-2 ">
           <div className="mb-6">
-            <label className="block text-lg font-semibold mb-2 text-gray-300">Type</label>
+            <label className="block text-lg font-semibold mb-2 text-gray-300">
+              Type
+            </label>
             <Select
               options={employeeTypes}
               value={selectedType}
@@ -173,7 +196,9 @@ const CommitteeMembersAdd = () => {
           </div>
 
           <div className="mb-6">
-            <label className="block text-lg font-semibold mb-2 text-gray-300">Department</label>
+            <label className="block text-lg font-semibold mb-2 text-gray-300">
+              Department
+            </label>
             <Select
               options={departments}
               value={selectedDepartment}
@@ -183,95 +208,128 @@ const CommitteeMembersAdd = () => {
               className="text-gray-100"
             />
           </div>
-
-          <div className="mb-6 md:col-span-2">
-            <label className="block text-lg font-semibold mb-2 text-gray-300">Select Employees by Department/Type</label>
-            <Select
-              options={employees}
-              value={selectedEmployees}
-              onChange={handleEmployeeSelect}
-              placeholder="Select employees"
-              className="text-gray-100"
-              isMulti
-              styles={{
-                control: (base) => ({
-                  ...base,
-                  backgroundColor: "#1F2937",
-                  color: "white",
-                  minHeight: "50px",
-                  width: "100%",
-                }),
-                menu: (base) => ({
-                  ...base,
-                  backgroundColor: "#1F2937",
-                  color: "white",
-                }),
-                option: (base, { isFocused }) => ({
-                  ...base,
-                  backgroundColor: isFocused ? "#3B82F6" : "#1F2937",
-                  color: "#fff",
-                }),
-                multiValue: (base) => ({
-                  ...base,
-                  backgroundColor: "#3B82F6",
-                  maxWidth: "150px",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }),
-                multiValueLabel: (base) => ({
-                  ...base,
-                  color: "white",
-                }),
-                multiValueRemove: (base) => ({
-                  ...base,
-                  color: "white",
-                  ":hover": {
-                    backgroundColor: "#3B82F6",
-                    color: "white",
-                  },
-                }),
-              }}
-            />
-          </div>
-
-          <div className="md:col-span-2 space-y-6">
-            {selectedEmployees.map((employee) => (
-              <div key={`selected-${employee.value}`} className="bg-gray-800 p-4 rounded-md shadow-lg border border-gray-700">
-                <p className="text-lg font-semibold text-gray-100 mb-4">{employee.label}</p>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="block font-medium text-gray-300">Role</label>
-                    <input
-                      type="text"
-                      value={employeeDetails[employee.value]?.role || ""}
-                      onChange={(e) => handleRoleChange(employee.value, e.target.value)}
-                      placeholder="Enter role"
-                      className="w-full p-2 mt-2 bg-gray-900 border border-gray-600 rounded-md text-white focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-medium text-gray-300">Score</label>
-                    <input
-                      type="number"
-                      value={employeeDetails[employee.value]?.score || ""}
-                      onChange={(e) => handleScoreChange(employee.value, e.target.value)}
-                      placeholder="Enter score"
-                      className="w-full p-2 mt-2 bg-gray-900 border border-gray-600 rounded-md text-white focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
-        <button
-          onClick={handleAddEmployee}
-          className="w-full p-4 mt-10 text-lg font-semibold bg-blue-500 rounded-md text-white hover:bg-blue-600 focus:outline-none"
-        >
-          Add Committee Members
-        </button>
+        <div className="mb-6 md:col-span-2 ">
+          <label className="block text-lg font-semibold mb-2 text-gray-300">
+            Select Employees by Department/Type
+          </label>
+          <Select
+            options={employees}
+            value={selectedEmployees}
+            onChange={handleEmployeeSelect}
+            placeholder="Select employees"
+            className="text-gray-100"
+            isMulti
+            isLoading={loadingEmployees}
+            styles={{
+              control: (base) => ({
+                ...base,
+                backgroundColor: "#1F2937",
+                color: "white",
+                minHeight: "50px",
+                width: "100%",
+              }),
+              menu: (base) => ({
+                ...base,
+                backgroundColor: "#1F2937",
+                color: "white",
+              }),
+              option: (base, { isFocused }) => ({
+                ...base,
+                backgroundColor: isFocused ? "#3B82F6" : "#1F2937",
+                color: "#fff",
+              }),
+              multiValue: (base) => ({
+                ...base,
+                backgroundColor: "#3B82F6",
+                maxWidth: "100px",
+                overflowY: "auto",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }),
+              multiValueLabel: (base) => ({
+                ...base,
+                color: "white",
+              }),
+              multiValueRemove: (base) => ({
+                ...base,
+                color: "white",
+                ":hover": {
+                  backgroundColor: "#3B82F6",
+                  color: "white",
+                },
+              }),
+              valueContainer: (base) => ({
+                ...base,
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "4px",
+                alignItems: "flex-start",
+                maxHeight: "150px", // Limit container height to avoid shifting
+                overflowY: "auto",
+              }),
+            }}
+          />
+        </div>
+
+        <div className="md:col-span-2 space-y-6">
+          {selectedEmployees.map((employee) => (
+            <div
+              key={`selected-${employee.value}`}
+              className="bg-gray-800 p-4 rounded-md shadow-lg border border-gray-700"
+            >
+              <p className="text-lg font-semibold text-gray-100 mb-4">
+                {employee.label}
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block font-medium text-gray-300">
+                    Role
+                  </label>
+                  <input
+                    type="text"
+                    value={employeeDetails[employee.value]?.role || ""}
+                    onChange={(e) =>
+                      handleRoleChange(employee.value, e.target.value)
+                    }
+                    placeholder="Enter role"
+                    className="w-full p-2 mt-2 bg-gray-900 border border-gray-600 rounded-md text-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium text-gray-300">
+                    Score
+                  </label>
+                  <input
+                    type="number"
+                    value={employeeDetails[employee.value]?.score || ""}
+                    onChange={(e) =>
+                      handleScoreChange(employee.value, e.target.value)
+                    }
+                    placeholder="Enter score"
+                    className="w-full p-2 mt-2 bg-gray-900 border border-gray-600 rounded-md text-white focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="md:col-span-2 flex gap-6">
+          <button
+            onClick={handleSkip}
+            className="w-full p-4 text-lg font-semibold bg-gray-600 hover:bg-gray-500 rounded-md shadow-md"
+          >
+            Skip
+          </button>
+          <button
+            onClick={handleAddEmployee}
+            className="w-full p-4 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 transition-transform duration-200 transform hover:scale-105 hover:shadow-2xl rounded-md shadow-md flex flex-col justify-between items-center text-center cursor-pointer"
+          >
+            Add Committee Members
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -22,7 +22,7 @@ const Navbar = () => {
           {accessToken ? ( // Conditional rendering based on access token
             <button
               onClick={handleLogout} // Attach the logout handler
-              className="text-white bg-slate-700 hover:bg-gray-800 focus:bg-gray-800 focus:ring-4 focus:outline-none font-medium rounded-lg text-xs sm:text-sm md:text-md lg:text-lg xl:text-xl px-3 py-2 text-center mb-2"
+              className="text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500  font-semibold py-2 px-4 rounded-full shadow-lg transition duration-150 ease-in-out focus:outline-none focus:ring focus:ring-blue-300  text-xs sm:text-sm md:text-md lg:text-lg xl:text-xl  text-center mb-2"
             >
               Logout
             </button>

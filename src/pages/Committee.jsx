@@ -1,8 +1,16 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Sidebar from "../components/SideBar";
 import axios from "axios";
 import requests from "../config";
+
+import { useLocation } from 'react-router-dom';
+
+
+
+  
+
+
 
 const Committee = () => {
   const [committeeData, setCommitteeData] = useState({
@@ -14,7 +22,46 @@ const Committee = () => {
     description: "",
   });
 
+
   const navigate = useNavigate(); // Initialize navigate function
+  //-----------start------
+  const location = useLocation();
+  console.log("Location:", location);
+  const queryParams = new URLSearchParams(window.location.search);
+  console.log(window.location.search)
+const committeeId = queryParams.get("committeeId");
+
+console.log(committeeId,"id")
+  // Fetch existing committee data when reconstituting
+  useEffect(() => {
+    console.log("inside useEffect")
+    if (committeeId) {
+      console.log("inside if")
+      const fetchCommitteeData = async () => {
+        try {
+          const response = await axios.get(
+            `${requests.BaseUrlCommittee}/committee-detail/${committeeId}/`
+        
+          );
+          const data = response.data;
+          console.log(response.data)
+          setCommitteeData({
+            orderNumber: data.order_number,
+            committeeName: data.committe_Name,
+            orderDate: data.order_date,
+            expiry: data.committe_Expiry,
+            orderText: data.order_Text,
+            description: data.order_Description,
+          });
+        } catch (error) {
+          console.error("Error fetching committee data:", error);
+          alert("Error fetching committee details. Please try again.");
+        }
+      };
+      fetchCommitteeData();
+    }
+  }, [committeeId]);
+  //--------------end---------------
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -34,13 +81,36 @@ const Committee = () => {
     };
 
     try {
-      const response = await axios.post(
-        `${requests.BaseUrlCommittee}/create-committee/`,
-        payload
-      );
+      
+      // const response = await axios.post(
+      //   `${requests.BaseUrlCommittee}/create-committee/`,
+      //   payload
+      // );
+      //-----------adding--------
+      if (committeeId) {
+        // Update committee if committeeId is present
+        const response = await axios.post(
+          //check url
+          // `${requests.BaseUrlCommittee}/committees/${committeeId}/`,
+          // payload
+          `${requests.BaseUrlCommittee}/create-committee/`,
+          payload
+        );
+        alert("Committee reconstituted successfully!");
+        navigate(`/add-members/${response.data.id}`);
+      } else {
+        // Create a new committee
+        const response = await axios.post(
+          `${requests.BaseUrlCommittee}/create-committee/`,
+          payload
+        );
+        alert("Committee saved successfully!");
+        navigate(`/add-members/${response.data.id}`);
+      }
+      //-end-----------
 
-      console.log(response.data);
-      alert("Committee saved successfully!");
+      // console.log(response.data);
+      // alert("Committee saved successfully!");
 
       // Reset form states
       setCommitteeData({
@@ -53,10 +123,10 @@ const Committee = () => {
       });
 
       // Redirect to the Add Members page with the new committee ID
-      navigate(`/add-members/${response.data.id}`);
+      
     } catch (error) {
       console.error("Error saving committee:", error);
-      alert("An error occurred while saving the committee. Please try again.");
+      // alert("An error occurred while saving the committee. Please try again.");
     }
   };
 
@@ -68,7 +138,8 @@ const Committee = () => {
 
       <div className="flex-grow p-10 pb-20">
         <h2 className="text-3xl font-bold text-center mb-8">
-          Add Committee
+          {/* Add Committee */}
+          {committeeId ? "Reconstitute Committee" : "Add Committee"}
         </h2>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
@@ -124,9 +195,10 @@ const Committee = () => {
 
           <button
             type="submit"
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition duration-150 ease-in-out focus:outline-none focus:ring focus:ring-blue-300 "
           >
-            Save Committee and Add Members
+            {/* Save Committee and Add Members */}
+            {committeeId ? "Reconstitute Committee" : "Save Committee and Add Members"}
           </button>
         </form>
       </div>
