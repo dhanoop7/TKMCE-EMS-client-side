@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import { HiMenuAlt3 } from "react-icons/hi"; 
 import { PiVideoConferenceFill } from "react-icons/pi";
-import { GrLogout } from "react-icons/gr"; 
-import { FaUsers, FaUserTie, FaCalendarCheck, FaChalkboardTeacher } from "react-icons/fa";
+import { FaUsers, FaUserTie } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
-
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const Sidebar = ({ defaultClosed }) => {
@@ -18,7 +16,7 @@ const Sidebar = ({ defaultClosed }) => {
     { name: "Employee Management", path: '/employee', icon: FaUserTie }, 
     // { name: "Leave Management", path: '/leave_management', icon: FaCalendarCheck }, 
     // { name: "Conference", path: '/conference_management', icon: FaChalkboardTeacher },
-    { name: "Logout", path: '/', icon: GrLogout },
+    // { name: "Logout", path: '/', icon: GrLogout },
   ];
 
   const handleNavigation = (path) => {
