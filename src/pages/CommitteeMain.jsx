@@ -17,7 +17,7 @@ const CommitteeMain = () => {
     navigate("/list-employee")
   }
   return (
-    <div className="pt-24 flex min-h-screen overflow-hidden bg-gray-800">
+    <div className="pt-24 flex h-screen overflow-hidden bg-gray-800">
       {/* Sidebar */}
       <div className="md:min-w-[18rem]">
         <Sidebar />

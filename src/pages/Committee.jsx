@@ -16,6 +16,8 @@ const Committee = () => {
     description: "",
   });
 
+  const [error, setError] = useState(null);
+
   const navigate = useNavigate(); // Initialize navigate function
   //-----------start------
   const location = useLocation();
@@ -84,7 +86,7 @@ const Committee = () => {
           payload
         );
         alert("Committee edited successfully!");
-        navigate(`/committee-detail/${committeeId}`)
+        navigate(`/committee-detail/${committeeId}`);
       } else {
         const response = await axios.post(
           `${requests.BaseUrlCommittee}/create-committee/`,
@@ -116,7 +118,18 @@ const Committee = () => {
       // Redirect to the Add Members page with the new committee ID
     } catch (error) {
       console.error("Error saving committee:", error);
-      // alert("An error occurred while saving the committee. Please try again.");
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.details
+      ) {
+        setError(
+          error.response.data.details.order_number ||
+            error.response.data.details
+        ); // Display specific error message for order_number
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     }
   };
 
@@ -129,7 +142,7 @@ const Committee = () => {
       <div className="flex-grow p-10 pb-20">
         <h2 className="text-3xl font-bold text-center mb-8">
           {/* Add Committee */}
-          <h2 className="text-3xl font-bold text-center mb-8">
+          <h2 className="text-3xl font-thin text-center mb-8">
             {mode === "edit"
               ? "Edit Committee"
               : committeeId
@@ -139,6 +152,7 @@ const Committee = () => {
         </h2>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
+          {error && <div className="text-red-500 mb-4">{error}</div>}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <input
               type="text"
@@ -165,6 +179,8 @@ const Committee = () => {
             />
             <input
               type="number"
+              min="0"
+              onWheel={(e) => e.target.blur()}
               name="expiry"
               value={committeeData.expiry}
               onChange={handleInputChange}

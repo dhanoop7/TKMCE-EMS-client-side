@@ -157,16 +157,27 @@ const CommitteeMembersAdd = () => {
       ...provided,
       color: "#fff",
     }),
-    menu: (provided) => ({
-      ...provided,
-      backgroundColor: "#374151",
+    menu: (base) => ({
+      ...base,
+      backgroundColor: "#1F2937",
+      color: "white",
+    }),
+    option: (base, { isFocused }) => ({
+      ...base,
+      backgroundColor: isFocused ? "#3B82F6" : "#1F2937",
       color: "#fff",
     }),
-    option: (provided, state) => ({
-      ...provided,
-      backgroundColor: state.isFocused ? "#4b5563" : "#374151",
-      color: "#fff",
-      cursor: "pointer",
+    multiValue: (base) => ({
+      ...base,
+      backgroundColor: "#3B82F6",
+    }),
+    multiValueLabel: (base) => ({
+      ...base,
+      color: "white",
+    }),
+    input: (base) => ({
+      ...base,
+      color: "#fff", 
     }),
   };
 
@@ -176,7 +187,7 @@ const CommitteeMembersAdd = () => {
         <Sidebar defaultClosed={true}/>
       </div> */}
       <div className="flex-grow p-10 pb-20">
-        <h2 className="text-3xl font-bold text-center mb-8 text-blue-400">
+        <h2 className="text-3xl font-thin text-center mb-8 text-blue-400">
           Add Committee Members
         </h2>
 
@@ -222,54 +233,7 @@ const CommitteeMembersAdd = () => {
             className="text-gray-100"
             isMulti
             isLoading={loadingEmployees}
-            styles={{
-              control: (base) => ({
-                ...base,
-                backgroundColor: "#1F2937",
-                color: "white",
-                minHeight: "50px",
-                width: "100%",
-              }),
-              menu: (base) => ({
-                ...base,
-                backgroundColor: "#1F2937",
-                color: "white",
-              }),
-              option: (base, { isFocused }) => ({
-                ...base,
-                backgroundColor: isFocused ? "#3B82F6" : "#1F2937",
-                color: "#fff",
-              }),
-              multiValue: (base) => ({
-                ...base,
-                backgroundColor: "#3B82F6",
-                maxWidth: "100px",
-                overflowY: "auto",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }),
-              multiValueLabel: (base) => ({
-                ...base,
-                color: "white",
-              }),
-              multiValueRemove: (base) => ({
-                ...base,
-                color: "white",
-                ":hover": {
-                  backgroundColor: "#3B82F6",
-                  color: "white",
-                },
-              }),
-              valueContainer: (base) => ({
-                ...base,
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "4px",
-                alignItems: "flex-start",
-                maxHeight: "150px", // Limit container height to avoid shifting
-                overflowY: "auto",
-              }),
-            }}
+            styles={customSelectStyles}
           />
         </div>
 
@@ -303,6 +267,8 @@ const CommitteeMembersAdd = () => {
                   </label>
                   <input
                     type="number"
+                    min="0"
+                    onWheel={(e) => e.target.blur()} 
                     value={employeeDetails[employee.value]?.score || ""}
                     onChange={(e) =>
                       handleScoreChange(employee.value, e.target.value)

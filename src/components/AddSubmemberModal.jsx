@@ -265,6 +265,8 @@ const AddSubmemberModal = ({
                     </label>
                     <input
                       type="number"
+                      min="0"
+                      onWheel={(e) => e.target.blur()}
                       value={employee.score || ""}
                       onChange={(e) =>
                         handleScoreChange(index, e.target.value)
