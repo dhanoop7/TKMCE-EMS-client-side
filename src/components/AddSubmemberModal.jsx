@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import axios from "axios";
 import requests from "../config";
+import { useNavigate } from "react-router-dom";
 
 const AddSubmemberModal = ({
   committeeId,
@@ -15,6 +16,8 @@ const AddSubmemberModal = ({
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [selectedType, setSelectedType] = useState(null);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
+
+  const navigate = useNavigate()
 
   const employeeTypes = [
     { value: null, label: "All Types" },
@@ -147,7 +150,9 @@ const AddSubmemberModal = ({
       if (response.status === 201) {
         console.log("Members added successfully:", response.data);
         resetFields();
-        closeModal();
+        // navigate(`/committee-detail/${committeeId}`)
+        window.location.href(`/committee-detail/${committeeId}`)
+        
       }
     } catch (error) {
       console.error("Error saving members:", error);

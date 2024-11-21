@@ -70,7 +70,7 @@ const AddSubCommittee = () => {
   return (
     <div className="pt-24 flex min-h-screen bg-gray-900 text-white">
       <div className="md:w-[18rem]">
-        <Sidebar defaultClosed={true}/>
+        <Sidebar />
       </div>
 
       <div className="flex-grow p-10 pb-20">
