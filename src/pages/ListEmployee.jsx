@@ -70,13 +70,17 @@ const ListEmployee = () => {
       if (selectedType?.value) params.type = selectedType.value;
 
       const response = await axios.get(
-        'http://127.0.0.1:8000/employee/employees-in-committees/',
+        `${requests.BaseUrlEmployee}/employees-in-committees/`,
         { params }
       );
-      setEmployees(response.data);
+
+      // Introduce a delay of 1.5 seconds before showing employees
+      setTimeout(() => {
+        setEmployees(response.data);
+        setLoadingEmployees(false);
+      }, 1500);
     } catch (error) {
       console.error('Error fetching employees in committees:', error);
-    } finally {
       setLoadingEmployees(false);
     }
   };
@@ -133,17 +137,21 @@ const ListEmployee = () => {
           <p className="text-center text-gray-300 mt-6">Loading...</p>
         ) : (
           <div className="mt-6 space-y-4">
-            {employees.map((employee) => (
-              <div key={employee.employee_id} className="bg-gray-800 p-4 rounded-lg shadow-lg">
-                <h3 className="text-lg font-semibold text-blue-400">
-                  {employee.employee_name}
-                </h3>
-                <p className="text-gray-300">Committee: {employee.committee_name || 'N/A'}</p>
-                <p className="text-gray-300">Subcommittee: {employee.subcommittee_name || 'N/A'}</p>
-                <p className="text-gray-300">Role: {employee.role}</p>
-                <p className="text-gray-300">Score: {employee.score}</p>
-              </div>
-            ))}
+            {employees.length > 0 ? (
+              employees.map((employee) => (
+                <div key={employee.employee_id} className="bg-gray-800 p-4 rounded-lg shadow-lg">
+                  <h3 className="text-lg font-semibold text-blue-400">
+                    {employee.employee_name}
+                  </h3>
+                  <p className="text-gray-300">Committee: {employee.committee_name || 'N/A'}</p>
+                  <p className="text-gray-300">Subcommittee: {employee.subcommittee_name || 'N/A'}</p>
+                  <p className="text-gray-300">Role: {employee.role}</p>
+                  <p className="text-gray-300">Score: {employee.score}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-400 mt-10">No employees found.</p>
+            )}
           </div>
         )}
       </div>

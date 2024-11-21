@@ -3,6 +3,7 @@ import Sidebar from '../components/SideBar';
 import { useNavigate } from 'react-router-dom';
 import { MdGroups } from "react-icons/md";
 import { FaFileInvoice } from "react-icons/fa";
+import { BsFileEarmarkPersonFill } from "react-icons/bs";
 
 const CommitteeMain = () => {
   const navigate = useNavigate()
@@ -11,6 +12,9 @@ const CommitteeMain = () => {
   }
   const handleNavigateAddCommittee = () =>{
     navigate("/committee")
+  }
+  const handleNavigateListEmployee = () =>{
+    navigate("/list-employee")
   }
   return (
     <div className="pt-24 flex min-h-screen overflow-hidden bg-gray-800">
@@ -43,6 +47,16 @@ const CommitteeMain = () => {
             <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2">Generate Report</h3>
             {/* <FaSearch className="text-white" size={40} /> */}
             <FaFileInvoice className='text-white' size={40} />
+          </div>
+
+          <div
+            className="bg-gradient-to-r from-blue-600 to-purple-600  transition-transform duration-200 transform hover:scale-105 hover:shadow-2xl p-6 rounded-md shadow-md flex flex-col justify-between items-center text-center cursor-pointer"
+            // Open modal on click
+            onClick={handleNavigateListEmployee}
+          >
+            <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2">List Employee</h3>
+            {/* <FaSearch className="text-white" size={40} /> */}
+            <BsFileEarmarkPersonFill  className='text-white' size={40} />
           </div>
         </div>
         

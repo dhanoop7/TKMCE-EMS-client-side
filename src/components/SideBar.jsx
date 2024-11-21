@@ -13,7 +13,9 @@ const Sidebar = ({ defaultClosed }) => {
     {name: "Dash board", path: '/admin-dashboard', icon: MdDashboard},
     { name: "Add Committee", path: '/committee', icon: FaUsers },
     { name: "Existing Committee", path: '/generate-report', icon: PiVideoConferenceFill },
-    { name: "Employee Management", path: '/employee', icon: FaUserTie }, 
+    { name: "Employee Management", path: '/employee', icon: FaUserTie },
+    { name: "Committee Management", path: '/committee-dashboard', icon: PiVideoConferenceFill },
+     
     // { name: "Leave Management", path: '/leave_management', icon: FaCalendarCheck }, 
     // { name: "Conference", path: '/conference_management', icon: FaChalkboardTeacher },
     // { name: "Logout", path: '/', icon: GrLogout },

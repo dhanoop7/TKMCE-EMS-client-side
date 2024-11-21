@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import requests from "../config";
 import Sidebar from "../components/SideBar";
-import { ClipLoader } from "react-spinners"; // Importing the ClipLoader spinner
+import { ClipLoader } from "react-spinners";
 
 const GenerateCommitteeReport = () => {
   const [committees, setCommittees] = useState([]);
-  const [loading, setLoading] = useState(true); // Track loading state
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,12 +20,12 @@ const GenerateCommitteeReport = () => {
           setCommittees([]);
           console.error("Unexpected data format:", response.data);
         }
-        setLoading(false); // Set loading to false once data is fetched
+        setTimeout(() => setLoading(false), 1500); // Delay the loading state by 1.5 seconds
       })
       .catch((error) => {
         console.error("Error fetching committees:", error);
         setCommittees([]);
-        setLoading(false); // Set loading to false even if there is an error
+        setTimeout(() => setLoading(false), 1500); // Delay in case of error
       });
   }, []);
 
@@ -40,10 +40,9 @@ const GenerateCommitteeReport = () => {
           Committee Reports
         </h2>
 
-        {/* Display loading spinner while data is being fetched */}
         {loading ? (
-          <div className="flex justify-center items-center">
-            <ClipLoader color="#6366F1" size={50} /> {/* Spinner component */}
+          <div className="flex justify-center items-center h-[50vh]">
+            <ClipLoader color="#6366F1" size={100} /> {/* Larger spinner size */}
           </div>
         ) : (
           <div>
