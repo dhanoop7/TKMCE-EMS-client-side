@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import requests from "../config";
 import Sidebar from "../components/SideBar";
 import Select from "react-select";
+import * as XLSX from "xlsx";
 
 const ListEmployee = () => {
   const [loadingEmployees, setLoadingEmployees] = useState(false);
@@ -14,6 +15,31 @@ const ListEmployee = () => {
   useEffect(() => {
     fetchDepartments();
   }, []);
+
+
+  const handleDownloadReport = async () => {
+    try {
+      // Make a GET request to the backend endpoint
+      const response = await axios.get("/generate-employee-report/", {
+        responseType: "blob", // Important: Specifies the response should be a Blob (binary data)
+      });
+
+      // Create a blob from the response data
+      const blob = new Blob([response.data], { type: response.headers["content-type"] });
+
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "Employee_Report.xlsx"); // File name for the downloaded file
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error downloading the report:", error);
+      alert("Failed to download the report. Please try again.");
+    }
+  };
 
   const fetchDepartments = async () => {
     try {
@@ -89,6 +115,39 @@ const ListEmployee = () => {
     }
   };
 
+
+  const generateExcelReport = async () => {
+    try {
+      // Fetch data from the backend
+      const response = await axios.get(`${requests.BaseUrlEmployee}/generate-employee-report/`, {
+        responseType: "json",
+      });
+  
+      const employeeData = response.data; // Assuming backend returns JSON
+  
+      // Create a new workbook
+      const workbook = XLSX.utils.book_new();
+  
+      // Prepare the data for the sheet
+      const sheetData = [["Employee Name", "Total Score"]]; // Headers
+      employeeData.forEach((employee) => {
+        sheetData.push([employee.employee_name, employee.total_score]); // Populate rows
+      });
+  
+      // Create a worksheet
+      const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
+  
+      // Add the worksheet to the workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Employee Report");
+  
+      // Generate and trigger the download
+      XLSX.writeFile(workbook, "Employee_Report.xlsx");
+    } catch (error) {
+      console.error("Error generating Excel report:", error);
+      alert("Failed to generate the report.");
+    }
+  };
+
   return (
     <div className="pt-24 flex min-h-screen overflow-hidden bg-gray-900">
       <div className="md:min-w-[18rem]">
@@ -99,6 +158,13 @@ const ListEmployee = () => {
         <h2 className="text-4xl font-extrabold text-center mb-10 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
           Committee Members
         </h2>
+
+        <button
+          className="bg-green-500 text-white font-semibold py-2 px-4 rounded"
+          onClick={generateExcelReport}
+        >
+          Download Employee Report
+        </button>
 
         <div className="grid gap-8 md:grid-cols-2 mb-10">
           <div className="mb-6">

@@ -10,6 +10,7 @@ const AddSubmemberModal = ({
   subCommitteeName,
   showModal,
   closeModal,
+  refreshCommitteeDetails,
 }) => {
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -150,8 +151,10 @@ const AddSubmemberModal = ({
       if (response.status === 201) {
         console.log("Members added successfully:", response.data);
         resetFields();
+        closeModal();
+        refreshCommitteeDetails();
         // navigate(`/committee-detail/${committeeId}`)
-        window.location.href(`/committee-detail/${committeeId}`)
+        // window.location.href(`/committee-detail/${committeeId}`)
         
       }
     } catch (error) {

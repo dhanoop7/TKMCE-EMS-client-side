@@ -14,6 +14,7 @@ import AddSubCommittee from './pages/AddSubCommittee';
 import UnderMaintenance from './pages/UnderMaintenance';
 import Unauthorized from './pages/Unauthorized';
 import ListEmployee from './pages/ListEmployee';
+import EditSubCcommittee from './pages/EditSubCcommittee';
 
  // Import ProtectedRoute
 
@@ -31,6 +32,7 @@ function App() {
         <Route path="/committee" element={<ProtectedRoute element={Committee} />} />
         <Route path="/add-members/:committe_id" element={<ProtectedRoute element={CommitteeMembersAdd} />} />
         <Route path="/add-subcommittee/:id" element={<ProtectedRoute element={AddSubCommittee} />} />
+        <Route path="/edit-subcommittee/:committeeId/:subcommitteeId" element={<ProtectedRoute element={EditSubCcommittee} />} />
         {/* <Route path="/add-members" element={<ProtectedRoute element={CommitteeMembersAdd} />} /> */}
         <Route path="/under-maintenance" element={<ProtectedRoute element={UnderMaintenance} /> } />
         <Route path="/generate-report" element={<ProtectedRoute element={GenerateCommitteeReport} />} />

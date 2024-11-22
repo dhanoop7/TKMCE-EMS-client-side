@@ -18,21 +18,21 @@ const CommitteeDetail = () => {
   const [loading, setLoading] = useState(true); // Track loading state
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          `${requests.BaseUrlCommittee}/committee-detail/${id}/`
-        );
-        setCommitteeDetails(response.data);
-      } catch (error) {
-        console.error("Error fetching committee details:", error);
-      } finally {
-        setTimeout(() => setLoading(false), 1500); // Minimum delay for loading spinner
-      }
-    };
-
     fetchData();
   }, [id]);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(
+        `${requests.BaseUrlCommittee}/committee-detail/${id}/`
+      );
+      setCommitteeDetails(response.data);
+    } catch (error) {
+      console.error("Error fetching committee details:", error);
+    } finally {
+      setTimeout(() => setLoading(false), 1500); // Minimum delay for loading spinner
+    }
+  };
 
   const handleAdd = () => {
     navigate(`/add-members/${id}`);
@@ -56,7 +56,7 @@ const CommitteeDetail = () => {
       .then((response) => {
         if (response.ok) {
           alert("Employee removed successfully!");
-          window.location.reload();
+          fetchData();
         } else {
           alert("Failed to remove employee. Please try again.");
         }
@@ -65,6 +65,60 @@ const CommitteeDetail = () => {
         console.error("Error:", error);
         alert("An error occurred. Please try again.");
       });
+  };
+
+  
+
+  const handleDeleteSubMember = async (subCommitteeId, memberId) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to remove this member?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(
+        `${requests.BaseUrlCommittee}/delete-subcommittee-member/${subCommitteeId}/member/${memberId}/`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        alert("Member removed successfully!");
+        fetchData(); // Refresh data to reflect changes
+      } else {
+        alert("Failed to remove the member. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error deleting member:", error);
+      alert("An error occurred. Please try again.");
+    }
+  };
+
+  const handleDeleteCommittee = async (committeeId) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this committee? This action cannot be undone."
+    );
+    if (!confirmDelete) return;
+  
+    try {
+      const response = await axios.delete(
+        `${requests.BaseUrlCommittee}/delete-committee/${committeeId}/`
+      );
+  
+      if (response.status === 204) {
+        alert("Committee deleted successfully!");
+        navigate('/generate-report') // Refresh the committee list after deletion
+      } else {
+        alert("Failed to delete the committee. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error deleting committee:", error);
+      alert("An error occurred while deleting the committee. Please try again.");
+    }
   };
 
   const handleGeneratePDF = (receiverName, role) => {
@@ -122,71 +176,72 @@ const CommitteeDetail = () => {
         <Sidebar />
       </div>
 
-      <div className="flex-grow pt-10 pb-8 px-6 lg:px-10">
-        <div className="flex flex-col items-center mb-10">
+      <div className="flex-grow pt-10 pb-8 px-6 lg:px-10 space-y-8">
+        
+        <header className="flex flex-col items-center mb-8">
+          
           <h2 className="text-5xl font-thin text-blue-300 mb-4">
             Committee Details
           </h2>
           <h3 className="text-4xl font-bold text-gray-100 bg-gray-800 px-8 py-4 rounded-lg shadow-lg">
             {committeeDetails.committe_Name}
           </h3>
-        </div>
+        </header>
 
-        <div className="bg-gray-800 text-gray-300 p-8 rounded-lg shadow-md mb-10">
+        {/* Committee Details Section */}
+        <section className="bg-gray-800 text-gray-300 p-8 rounded-lg shadow-md mb-8">
+          <h3 className="text-2xl font-bold text-blue-300 mb-4">
+            Committee Information
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <h4 className="text-lg font-semibold text-blue-200">
-                Order Description
-              </h4>
-              <p className="text-md">{committeeDetails.order_Description}</p>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold text-blue-200">
-                Order Number
-              </h4>
-              <p className="text-md">{committeeDetails.order_number}</p>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold text-blue-200">
-                Order Text
-              </h4>
-              <p className="text-md">{committeeDetails.order_Text}</p>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold text-blue-200">
-                Order Date
-              </h4>
-              <p className="text-md">
-                {new Date(committeeDetails.order_date).toLocaleDateString()}
-              </p>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold text-blue-200">
-                Committee Expiry
-              </h4>
-              <p className="text-md">
-                {committeeDetails.committe_Expiry ? "Active" : "Expired"}
-              </p>
-            </div>
+            <DetailItem
+              title="Order Description"
+              content={committeeDetails.order_Description}
+            />
+            <DetailItem
+              title="Order Number"
+              content={committeeDetails.order_number}
+            />
+            <DetailItem
+              title="Order Text"
+              content={committeeDetails.order_Text}
+            />
+            <DetailItem
+              title="Order Date"
+              content={new Date(
+                committeeDetails.order_date
+              ).toLocaleDateString()}
+            />
+            <DetailItem
+              title="Committee Expiry"
+              content={committeeDetails.committe_Expiry ? "Active" : "Expired"}
+            />
           </div>
-          <button
-            className="mt-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-150"
-            onClick={() => handleReconstitute("edit")}
-          >
-            Edit
-          </button>
-        </div>
+          <div className="flex justify-end mt-6">
+            <button
+              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-150"
+              onClick={() => handleReconstitute("edit")}
+            >
+              Edit Committee
+            </button>
+          </div>
+        </section>
 
-        <div className="bg-gray-800 shadow-lg rounded-lg p-8 space-y-6 mb-10 border-2 border-blue-500">
-          <h3 className="text-2xl font-bold text-white">
+        {/* Main Committee Members Section */}
+        <section className="bg-gray-800 shadow-lg rounded-lg p-8 mb-8">
+          <h3 className="text-2xl font-bold text-blue-300 mb-4">
             Main Committee Members
           </h3>
-          <ul className="list-disc pl-5 text-gray-300 space-y-2">
+          <ul className="list-disc pl-5 space-y-2">
             {(committeeDetails.main_committee_members || []).map(
               (member, index) => (
-                <li key={index} className="flex justify-between items-center">
+                <li
+                  key={index}
+                  className="flex justify-between items-center bg-gray-700 px-4 py-2 rounded-lg shadow-md"
+                >
                   <span className="text-white font-semibold">
-                    {member.employee?.name} - {member.role}
+                    {member.employee?.name} - {member.role} - Score:{" "}
+                    {member.score}
                   </span>
                   <button
                     className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-1 px-3 rounded-md"
@@ -198,58 +253,93 @@ const CommitteeDetail = () => {
               )
             )}
           </ul>
-          <button
-            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-4 rounded-md transition duration-150"
-            onClick={handleAdd}
-          >
-            Add More Members
-          </button>
-        </div>
+          <div className="flex justify-end mt-6">
+            <button
+              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-4 rounded-md transition duration-150"
+              onClick={handleAdd}
+            >
+              Add More Members
+            </button>
+          </div>
+        </section>
 
+        {/* Subcommittees Section */}
         {committeeDetails.sub_committees?.length > 0 && (
-          <div className="bg-gray-800 shadow-lg rounded-lg p-8 space-y-6">
-            <h4 className="text-2xl font-bold text-blue-300 border-b-2 border-blue-500 pb-2">
+          <section className="bg-gray-800 shadow-lg rounded-lg p-8 mb-8">
+            <h3 className="text-2xl font-bold text-blue-300 mb-6">
               Subcommittees
-            </h4>
+            </h3>
             {committeeDetails.sub_committees.map((subCommittee, index) => (
-              <div key={index} className="bg-gray-700 rounded-lg p-6 shadow-md">
-                <h5 className="text-lg font-semibold text-white">
+              <div
+                key={index}
+                className="bg-gray-700 rounded-lg p-6 shadow-md mb-8"
+              >
+                <h4 className="text-xl font-bold text-white mb-2">
                   {subCommittee.sub_committee_name}
-                </h5>
-                <p className="text-gray-300 mb-4">
+                </h4>
+                <p className="text-gray-300 mb-6">
                   {subCommittee.sub_committee_Text}
                 </p>
-                <ul className="list-disc pl-5 text-gray-300">
-                  {(subCommittee.members || []).map((member, idx) => (
-                    <li key={idx} className="flex justify-between items-center">
-                      <span className="text-gray-200 font-semibold">
-                        {member.employee?.name}
-                      </span>
-                      <button className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-1 px-3 rounded-md">
-                        Remove
-                      </button>
-                    </li>
-                  ))}
-                </ul>
 
+                <div className="space-y-4 mb-6">
+                  {subCommittee.members && subCommittee.members.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                      {subCommittee.members.map((member, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between bg-gray-600 px-4 py-3  rounded-lg shadow"
+                        >
+                          <span className="text-gray-200 font-semibold">
+                            {member.employee?.name} - {member.role} - Score:{" "}
+                            {member.score}
+                          </span>
+                          <button
+                            onClick={() =>
+                              handleDeleteSubMember(subCommittee.id, member.id)
+                            }
+                            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-1 px-4 rounded-md"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-400 italic">
+                      No members in this subcommittee.
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex justify-between">
                 <button
-                  className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-4 rounded-md transition duration-150"
-                  onClick={() => handleAddSubcommitteeMembers(subCommittee)}
-                >
-                  Add More Members
-                </button>
+                    className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-150"
+                    onClick={() => navigate(`/edit-subcommittee/${id}/${subCommittee.id}`)}
+                  >
+                    Edit SubCommittee
+                  </button>
+                  <button
+                    className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-150"
+                    onClick={() => handleAddSubcommitteeMembers(subCommittee)}
+                  >
+                    Add Members
+                  </button>
+                </div>
               </div>
             ))}
-          </div>
-        )}
 
-        <div className="flex flex-col items-center space-y-4 mt-10">
+          
+          </section>
+        )}
           <button
-            onClick={handleAddSubCommittee}
-            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition duration-150"
-          >
-            Add Subcommittee
-          </button>
+              onClick={handleAddSubCommittee}
+              className="bg-gradient-to-r from-blue-600 to-purple-600  transition-transform duration-200 transform hover:scale-105 hover:shadow-2xl py-2 px-6 rounded-lg"
+            >
+              Add Subcommittee
+            </button>
+
+        {/* Actions Section */}
+        <section className="flex flex-col items-center space-y-4">
           <button
             onClick={() => handleReconstitute("reconstitute")}
             className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition duration-150"
@@ -262,8 +352,16 @@ const CommitteeDetail = () => {
           >
             Generate Report
           </button>
-        </div>
 
+          <button
+            onClick={() => handleDeleteCommittee(id)}
+            className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-gray-900 font-bold py-2 px-6 rounded-lg shadow-lg transition duration-150"
+          >
+            Delete Committee
+          </button>
+        </section>
+
+        {/* Modal for Generating Report */}
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
             <div className="bg-gray-800 text-gray-200 p-6 rounded-lg shadow-lg w-full max-w-lg mx-4">
@@ -311,18 +409,28 @@ const CommitteeDetail = () => {
           </div>
         )}
 
+        {/* Modal for Adding Subcommittee Members */}
         {selectedSubcommittee && (
-          <AddSubmemberModal 
+          <AddSubmemberModal
             committeeId={id}
             subCommitteeId={selectedSubcommittee.id}
             subCommitteeName={selectedSubcommittee.sub_committee_name}
             showModal={showSubmemberModal}
             closeModal={closeSubmemberModal}
+            refreshCommitteeDetails={fetchData}
           />
         )}
       </div>
     </div>
   );
 };
+
+// Helper Component for Reusability
+const DetailItem = ({ title, content }) => (
+  <div>
+    <h4 className="text-lg font-semibold text-blue-200">{title}</h4>
+    <p className="text-md">{content}</p>
+  </div>
+);
 
 export default CommitteeDetail;
