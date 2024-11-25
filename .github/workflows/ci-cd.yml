@@ -1,0 +1,35 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - dhanoop-reactjs
+  pull_request:
+    branches:
+      - dhanoop-reactjs
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3  # Update to the latest version
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3  # Update to the latest version
+      with:
+        node-version: '18'  # Your project's Node.js version
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run tests
+      run: npm test
+
+    - name: Build
+      run: npm run build
+
+    - name: Deploy
+      run: npm run deploy  # Add your deployment command if needed
+
