@@ -1,59 +1,78 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import requests from "../config";
 import Sidebar from "../components/SideBar";
 import Select from "react-select";
-import * as XLSX from "xlsx";
 
 const ListEmployee = () => {
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const [selectedDepartment, setSelectedDepartment] = useState(null);
-  const [selectedType, setSelectedType] = useState(null);
+  const [selectedDepartment, setSelectedDepartment] = useState({
+    value: null,
+    label: "All Departments",
+  });
+  const [selectedType, setSelectedType] = useState({
+    value: null,
+    label: "All Types",
+  });
+  const [searchText, setSearchText] = useState("");
+  const [debouncedSearchText, setDebouncedSearchText] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
+  const [selectedOrder, setSelectedOrder] = useState("asc");
 
   useEffect(() => {
     fetchDepartments();
   }, []);
 
+  // Debounce logic to delay API calls
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearchText(searchText);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [searchText]);
 
-  const handleDownloadReport = async () => {
-    try {
-      // Make a GET request to the backend endpoint
-      const response = await axios.get("/generate-employee-report/", {
-        responseType: "blob", // Important: Specifies the response should be a Blob (binary data)
-      });
-
-      // Create a blob from the response data
-      const blob = new Blob([response.data], { type: response.headers["content-type"] });
-
-      // Create a download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "Employee_Report.xlsx"); // File name for the downloaded file
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error("Error downloading the report:", error);
-      alert("Failed to download the report. Please try again.");
-    }
-  };
+  // Fetch employees when debouncedSearchText or selectedDepartment changes
+  useEffect(() => {
+    fetchEmployeesInCommittees();
+  }, [debouncedSearchText, selectedDepartment, selectedType]);
 
   const fetchDepartments = async () => {
     try {
-      const response = await axios.get(
-        `${requests.BaseUrlEmployee}/departments/`
-      );
+      const response = await axios.get(`${requests.BaseUrlEmployee}/departments/`);
       const departmentOptions = response.data.map((department) => ({
         value: department.id,
         label: department.department_name,
       }));
       departmentOptions.unshift({ value: null, label: "All Departments" });
       setDepartments(departmentOptions);
+
+      if (!selectedDepartment) {
+        setSelectedDepartment(departmentOptions[0]);
+      }
     } catch (error) {
       console.error("Error fetching departments:", error);
+    }
+  };
+
+  const fetchEmployeesInCommittees = async () => {
+    setLoadingEmployees(true);
+    try {
+      const params = {};
+      if (selectedDepartment?.value) params.department = selectedDepartment.value;
+      if (selectedType?.value !== null) params.type = selectedType.value;
+      if (debouncedSearchText) params.search = debouncedSearchText;
+
+      const response = await axios.get(
+        `${requests.BaseUrlEmployee}/employees-in-committees/`,
+        { params }
+      );
+      setEmployees(response.data);
+    } catch (error) {
+      console.error("Error fetching employees in committees:", error);
+    } finally {
+      setLoadingEmployees(false);
     }
   };
 
@@ -90,61 +109,40 @@ const ListEmployee = () => {
     }),
   };
 
-  const fetchEmployeesInCommittees = async () => {
-    setLoadingEmployees(true);
+  const handleGenerateExcel = async () => {
     try {
-      const params = {};
-      if (selectedDepartment?.value)
+      // console.log("Generating Excel Report with filters:");
+      // console.log("Selected Department:", selectedDepartment);
+      // console.log("Selected Type:", selectedType);
+      // console.log("Sort Order:", selectedOrder);
+  
+      // Construct query parameters
+      const params = {
+        type: selectedType.value,
+        order: selectedOrder,
+      };
+  
+      if (selectedDepartment.value) {
         params.department = selectedDepartment.value;
-      if (selectedType?.value) params.type = selectedType.value;
-
+      }
+  
+      // Make the API request to fetch the report
       const response = await axios.get(
-        `${requests.BaseUrlEmployee}/employees-in-committees/`,
-        { params }
+        `${requests.BaseUrlEmployee}/generate-employee-report/`, // Update the URL as per your backend
+        { params, responseType: 'blob' } // 'blob' to handle binary data (Excel file)
       );
-      // console.log(response.data);
-
-      // Introduce a delay of 1.5 seconds before showing employees
-      setTimeout(() => {
-        setEmployees(response.data);
-        setLoadingEmployees(false);
-      }, 1500);
-    } catch (error) {
-      console.error("Error fetching employees in committees:", error);
-      setLoadingEmployees(false);
-    }
-  };
-
-
-  const generateExcelReport = async () => {
-    try {
-      // Fetch data from the backend
-      const response = await axios.get(`${requests.BaseUrlEmployee}/generate-employee-report/`, {
-        responseType: "json",
-      });
   
-      const employeeData = response.data; // Assuming backend returns JSON
-  
-      // Create a new workbook
-      const workbook = XLSX.utils.book_new();
-  
-      // Prepare the data for the sheet
-      const sheetData = [["Employee Name", "Total Score"]]; // Headers
-      employeeData.forEach((employee) => {
-        sheetData.push([employee.employee_name, employee.total_score]); // Populate rows
-      });
-  
-      // Create a worksheet
-      const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
-  
-      // Add the worksheet to the workbook
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Employee Report");
-  
-      // Generate and trigger the download
-      XLSX.writeFile(workbook, "Employee_Report.xlsx");
+      // Create a link to download the Excel file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'employee_report.xlsx'); // File name for download
+      document.body.appendChild(link);
+      link.click(); // Trigger download
+      setIsModalOpen(false); // Close the modal after generating the report
     } catch (error) {
       console.error("Error generating Excel report:", error);
-      alert("Failed to generate the report.");
+      alert("There was an error generating the report.");
     }
   };
 
@@ -159,18 +157,10 @@ const ListEmployee = () => {
           Committee Members
         </h2>
 
-        <button
-          className="bg-green-500 text-white font-semibold py-2 px-4 rounded"
-          onClick={generateExcelReport}
-        >
-          Download Employee Report
-        </button>
-
-        <div className="grid gap-8 md:grid-cols-2 mb-10">
+        <div className="grid gap-8 md:grid-cols-3 lg:grid-cols-3 mb-10 items-end">
+          {/* Type Select */}
           <div className="mb-6">
-            <label className="block text-lg font-semibold mb-2 text-gray-200">
-              Type
-            </label>
+            <label className="block text-lg font-semibold mb-2 text-gray-200">Type</label>
             <Select
               options={employeeTypes}
               value={selectedType}
@@ -181,10 +171,9 @@ const ListEmployee = () => {
             />
           </div>
 
+          {/* Department Select */}
           <div className="mb-6">
-            <label className="block text-lg font-semibold mb-2 text-gray-200">
-              Department
-            </label>
+            <label className="block text-lg font-semibold mb-2 text-gray-200">Department</label>
             <Select
               options={departments}
               value={selectedDepartment}
@@ -194,21 +183,31 @@ const ListEmployee = () => {
               className="text-gray-100"
             />
           </div>
+
+          {/* Generate Excel Report Button */}
+          <div className="flex justify-start md:justify-end">
+            <button
+              onClick={() => setIsModalOpen(true)} // Open modal when button is clicked
+              className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-md hover:scale-105 hover:shadow-lg transform transition-transform duration-200"
+            >
+              Generate Excel Report
+            </button>
+          </div>
         </div>
 
-        <div className="flex justify-center">
-          <button
-            onClick={fetchEmployeesInCommittees}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition duration-200 ease-in-out focus:outline-none focus:ring focus:ring-blue-300"
-          >
-            Fetch Employees
-          </button>
+        <div className="mb-6">
+          <label className="block text-lg font-semibold mb-2 text-gray-200">Search</label>
+          <input
+            type="text"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="Search by employee name"
+            className="w-full bg-gray-800 text-gray-200 p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring focus:ring-blue-500"
+          />
         </div>
 
         {loadingEmployees ? (
-          <p className="text-center text-gray-300 mt-8 text-lg font-semibold">
-            Loading...
-          </p>
+          <p className="text-center text-gray-300 mt-8 text-lg font-semibold">Loading...</p>
         ) : (
           <div className="mt-8 space-y-8">
             {employees.length > 0 ? (
@@ -228,12 +227,10 @@ const ListEmployee = () => {
                           className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition-colors duration-150"
                         >
                           <p className="text-gray-300">
-                            <strong>Committee:</strong>{" "}
-                            {committee.committee_name || "N/A"}
+                            <strong>Committee:</strong> {committee.committee_name || "N/A"}
                           </p>
                           <p className="text-gray-300">
-                            <strong>Subcommittee:</strong>{" "}
-                            {committee.subcommittee_name || "N/A"}
+                            <strong>Subcommittee:</strong> {committee.subcommittee_name || "N/A"}
                           </p>
                           <p className="text-gray-300">
                             <strong>Role:</strong> {committee.role}
@@ -248,13 +245,63 @@ const ListEmployee = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-400 mt-10 text-lg">
-                No employees found.
-              </p>
+              <p className="text-center text-gray-400 mt-10 text-lg">No employees found.</p>
             )}
           </div>
         )}
       </div>
+
+      {/* Custom Modal for Excel Report Filters */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-gray-900 p-6 rounded-lg shadow-lg w-1/3">
+            <h3 className="text-xl font-bold text-blue-400 mb-4">Filter Options for Report</h3>
+
+            {/* Type Select */}
+            <div className="mb-4">
+              <label className="block text-lg font-semibold mb-2 text-gray-200">Type</label>
+              <Select
+                options={employeeTypes}
+                value={selectedType}
+                onChange={setSelectedType}
+                placeholder="Select a type"
+                styles={customSelectStyles}
+              />
+            </div>
+
+            {/* Sorting Order Select */}
+            <div className="mb-4">
+              <label className="block text-lg font-semibold mb-2 text-gray-200">Sort by Score</label>
+              <Select
+                options={[
+                  { value: "asc", label: "Ascending" },
+                  { value: "desc", label: "Descending" },
+                ]}
+                value={{ value: selectedOrder, label: selectedOrder === "asc" ? "Ascending" : "Descending" }}
+                onChange={(e) => setSelectedOrder(e.value)}
+                placeholder="Select Order"
+                styles={customSelectStyles}
+              />
+            </div>
+
+            {/* Modal Buttons */}
+            <div className="mt-4 flex justify-end space-x-4">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleGenerateExcel}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+              >
+                Generate Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

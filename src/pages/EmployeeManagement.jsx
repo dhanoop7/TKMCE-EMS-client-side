@@ -17,6 +17,9 @@ const EmployeeManagement = () => {
   // const openSearchModal = () => setShowSearchModal(true);
   // const closeSearchModal = () => setShowSearchModal(false);
   const openSearchModal =() => {
+    navigate('/list-employee')
+  }
+  const openUnderMaintanence = () => {
     navigate('/under-maintenance')
   }
 
@@ -40,7 +43,7 @@ const EmployeeManagement = () => {
           {/* Add Employee Section */}
           <div
             className="bg-gradient-to-r from-blue-600 to-purple-600  transition-transform duration-200 transform hover:scale-105 hover:shadow-2xl p-6 rounded-md shadow-md flex flex-col justify-between items-center text-center cursor-pointer"
-            onClick={openSearchModal} // Open modal on click
+            onClick={openUnderMaintanence} // Open modal on click
           >
             <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2">Add Employee</h3>
             <FaUserPlus className="text-white" size={40} />

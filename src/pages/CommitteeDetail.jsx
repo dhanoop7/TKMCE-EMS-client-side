@@ -16,6 +16,7 @@ const CommitteeDetail = () => {
   const [receiverName, setReceiverName] = useState("");
   const [role, setRole] = useState("principal");
   const [loading, setLoading] = useState(true); // Track loading state
+  const [copyName, setCopyName] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -121,11 +122,11 @@ const CommitteeDetail = () => {
     }
   };
 
-  const handleGeneratePDF = (receiverName, role) => {
+  const handleGeneratePDF = (receiverName, copyName, role) => {
     axios
       .get(`${requests.BaseUrlCommittee}/report/${id}/`, {
-        params: { receiver_name: receiverName, role: role },
-        responseType: "text",
+        params: { receiver_name: receiverName,copy_name: copyName, role: role },
+        responseType: "text"
       })
       .then((response) => {
         const reportHtml = response.data;
@@ -134,6 +135,8 @@ const CommitteeDetail = () => {
         printWindow.document.write(reportHtml);
         printWindow.document.close();
         printWindow.onload = () => printWindow.print();
+        setReceiverName("");
+        setCopyName(""); 
       })
       .catch((error) => {
         console.error("Error generating HTML report:", error);
@@ -141,7 +144,9 @@ const CommitteeDetail = () => {
   };
 
   const handleSubmit = async () => {
-    handleGeneratePDF(receiverName, role);
+    // console.log("Submitting with:", { receiverName, copyName, role }); // Debugging log
+    handleGeneratePDF(receiverName, copyName, role);
+
     toggleModal();
   };
 
@@ -368,26 +373,33 @@ const CommitteeDetail = () => {
               <h2 className="text-xl font-semibold mb-4">Generate Report</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold">
-                    Receiver Name:
-                  </label>
+                  <label className="block text-sm font-semibold">To:</label>
                   <input
                     type="text"
-                    className="w-full mt-1 p-2 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-blue-500"
+                    className="w-full mt-1 p-2 bg-transparent border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-blue-500"
                     value={receiverName}
                     onChange={(e) => setReceiverName(e.target.value)}
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-semibold">Copy to:</label>
+                  <input
+                    type="text"
+                    className="w-full mt-1 p-2 bg-transparent border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-blue-500"
+                    value={copyName}
+                    onChange={(e) => setCopyName(e.target.value)}
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-semibold">Role:</label>
                   <select
-                    className="w-full mt-1 p-2 border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-blue-500"
+                    className="w-full mt-1 p-2 bg-transparent border border-gray-700 rounded-md focus:outline-none focus:ring focus:ring-blue-500"
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
                   >
-                    <option value="principal">Principal</option>
-                    <option value="dean">Dean</option>
-                    <option value="manager">Manager</option>
+                    <option className="bg-gray-500" value="Principal">Principal</option>
+                    <option className="bg-gray-500" value="Principal-in-charge">Principal-in-charge</option>
+                    {/* <option value="manager">Manager</option> */}
                   </select>
                 </div>
               </div>
