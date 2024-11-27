@@ -4,6 +4,9 @@ import Sidebar from "../components/SideBar";
 import Select from "react-select";
 import axios from "axios";
 import requests from "../config";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const CommitteeMembersAdd = () => {
   const navigate = useNavigate();
@@ -87,15 +90,29 @@ const CommitteeMembersAdd = () => {
 
   const handleEmployeeSelect = (selectedOptions) => {
     setSelectedEmployees(selectedOptions);
+  
+    const selectedIds = selectedOptions.map((option) => option.value);
+  
+    // Initialize details for newly selected employees and keep existing ones
     const initialDetails = {};
     selectedOptions.forEach((option) => {
-      initialDetails[option.value] = { role: "", score: "" };
+      initialDetails[option.value] = employeeDetails[option.value] || {
+        role: "",
+        score: "",
+      };
     });
-    setEmployeeDetails((prevDetails) => ({
-      ...prevDetails,
-      ...initialDetails,
-    }));
+  
+    // Retain details only for currently selected employees
+    setEmployeeDetails((prevDetails) =>
+      Object.keys(prevDetails).reduce((newDetails, key) => {
+        if (selectedIds.includes(key)) {
+          newDetails[key] = prevDetails[key];
+        }
+        return newDetails;
+      }, initialDetails)
+    );
   };
+  
 
   const handleRoleChange = (employeeId, role) => {
     setEmployeeDetails((prevDetails) => ({
@@ -125,7 +142,7 @@ const CommitteeMembersAdd = () => {
         { committee_id: committeeId, members: members }
       );
       console.log("Response:", response.data);
-      alert("Main committee members added successfully!");
+      toast.success("Committee Members Added successfully!");
 
       setSelectedEmployees([]);
       setSelectedDepartment(null);
@@ -187,6 +204,18 @@ const CommitteeMembersAdd = () => {
         <Sidebar defaultClosed={true}/>
       </div> */}
       <div className="flex-grow p-10 pb-20">
+      <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="dark"
+        />
         <h2 className="text-3xl font-thin text-center mb-8 text-blue-400">
           Add Committee Members
         </h2>

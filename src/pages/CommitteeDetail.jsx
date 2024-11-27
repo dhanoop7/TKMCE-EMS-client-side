@@ -5,6 +5,8 @@ import requests from "../config";
 import Sidebar from "../components/SideBar";
 import { ClipLoader } from "react-spinners"; // Import the ClipLoader spinner
 import AddSubmemberModal from "../components/AddSubmemberModal";
+import { saveAs } from "file-saver"; // For saving the Word file
+import { Document, Packer, Paragraph } from "docx"; // For converting HTML to Word
 
 const CommitteeDetail = () => {
   const { id } = useParams();
@@ -126,7 +128,7 @@ const CommitteeDetail = () => {
     axios
       .get(`${requests.BaseUrlCommittee}/report/${id}/`, {
         params: { receiver_name: receiverName,copy_name: copyName, role: role },
-        responseType: "text"
+        // responseType: "text"
       })
       .then((response) => {
         const reportHtml = response.data;
@@ -136,19 +138,20 @@ const CommitteeDetail = () => {
         printWindow.document.close();
         printWindow.onload = () => printWindow.print();
         setReceiverName("");
-        setCopyName(""); 
+        setCopyName("");
+        toggleModal(); 
       })
       .catch((error) => {
         console.error("Error generating HTML report:", error);
       });
   };
 
-  const handleSubmit = async () => {
-    // console.log("Submitting with:", { receiverName, copyName, role }); // Debugging log
-    handleGeneratePDF(receiverName, copyName, role);
+  // const handleSubmit = async () => {
+  //   // console.log("Submitting with:", { receiverName, copyName, role }); // Debugging log
+  //   handleGeneratePDF(receiverName, copyName, role);
 
-    toggleModal();
-  };
+  //   toggleModal();
+  // };
 
   const handleAddSubcommitteeMembers = (subcommittee) => {
     setSelectedSubcommittee(subcommittee);
@@ -166,6 +169,47 @@ const CommitteeDetail = () => {
     navigate(`/committee?committeeId=${id}&mode=${mode}`);
 
   const toggleModal = () => setIsModalOpen(!isModalOpen);
+
+  const handleGenerateWord = async (receiverName, copyName, role) => {
+    try {
+      const response = await axios.get(
+        `${requests.BaseUrlCommittee}/report/${id}/`,
+        {
+          params: { receiver_name: receiverName, copy_name: copyName, role: role },
+          responseType: "text", // Ensure the response is plain HTML
+        }
+      );
+  
+      if (response.status === 200) {
+        const htmlContent = response.data;
+  
+        // Parse HTML content (or add custom content here)
+        const paragraphs = htmlContent.split("\n").map((line) => new Paragraph(line));
+  
+        // Generate Word document
+        const doc = new Document({
+          sections: [
+            {
+              properties: {},
+              children: paragraphs,
+            },
+          ],
+        });
+  
+        // Convert to Blob and save
+        const blob = await Packer.toBlob(doc);
+        saveAs(blob, `committee_report_${id}.docx`);
+      } else {
+        console.error("Error fetching report: ", response.statusText);
+        alert("Failed to generate the report.");
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+      alert("An error occurred while downloading the report.");
+    }
+  };
+  
+  
 
   if (loading) {
     return (
@@ -364,6 +408,8 @@ const CommitteeDetail = () => {
           >
             Delete Committee
           </button>
+
+          
         </section>
 
         {/* Modal for Generating Report */}
@@ -411,10 +457,17 @@ const CommitteeDetail = () => {
                   Cancel
                 </button>
                 <button
-                  onClick={handleSubmit}
+                  onClick={() =>{handleGeneratePDF(receiverName, copyName, role)}}
                   className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-4 rounded-md transition duration-150"
                 >
-                  Submit
+                  Download Pdf
+                </button>
+
+                <button
+                  onClick={() =>{handleGenerateWord(receiverName, copyName, role)}}
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-4 rounded-md transition duration-150"
+                >
+                  Download Word
                 </button>
               </div>
             </div>
@@ -433,6 +486,8 @@ const CommitteeDetail = () => {
           />
         )}
       </div>
+
+      
     </div>
   );
 };
