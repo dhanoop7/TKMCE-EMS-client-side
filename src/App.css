@@ -37,3 +37,13 @@
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
 }
+
+
+@keyframes scrollUp {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-25%); }
+}
+
+.animate-scroll {
+  animation: scrollUp 3s linear infinite;
+}

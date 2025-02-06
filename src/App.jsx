@@ -1,11 +1,16 @@
-import './App.css';
+import "./App.css";
+import Navbar from "./components/Navbar";
+import Sidebar from "./components/SideBar";
+import Home from "./pages/Home";
 
-
- // Import ProtectedRoute
+// Import ProtectedRoute
 
 function App() {
   return (
-    <div>Hello World</div>
+    <div>
+      <Navbar />
+      <Home/>
+    </div>
   );
 }
 
